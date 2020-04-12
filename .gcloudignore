@@ -1,0 +1,12 @@
+Makefile
+run_local.py
+creds.json
+__pycache__/**
+.idea/**
+.gcloudignore
+js/
+node_modules/
+webpack.config.js
+yarn.lock
+package.json
+.eslintrc.js

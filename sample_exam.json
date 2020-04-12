@@ -1,0 +1,74 @@
+{
+  "name": "cs61a-final-wednesday",
+  "groups": [
+    {
+      "name": "WWPD?",
+      "points": 6,
+      "html": "<b>This is some very important text</b>. This is not so important.",
+      "questions": [
+        {
+          "id": "question_1",
+          "type": "multiple_choice",
+          "html": "What is cat?",
+          "points": 2,
+          "options": [
+            "fat",
+            "smart",
+            "cute"
+          ]
+        },
+        {
+          "id": "question_1.5",
+          "type": "multiple_choice",
+          "html": "What is cat?",
+          "points": 4,
+          "options": [
+            "fat",
+            "smart",
+            "cute"
+          ]
+        },
+        {
+          "id": "question_2",
+          "points": 7,
+          "type": "short_answer",
+          "html": "What is cat?"
+        }
+      ]
+    },
+    {
+      "name": "WWPD?",
+      "points": 6,
+      "questions": [
+        {
+          "id": "question_1",
+          "type": "multiple_choice",
+          "html": "<p><em>Go bears!</em></p>\n<p><span class=\"math inline\">\\(1+2\\)</span></p>\n<pre><code>Block code</code></pre>So what do you think about cats?\n",
+          "points": 2,
+          "options": [
+            "fat",
+            "smart",
+            "cute"
+          ]
+        },
+        {
+          "id": "question_1.5",
+          "type": "multiple_choice",
+          "html": "What is cat?",
+          "points": 4,
+          "options": [
+            "fat",
+            "smart",
+            "cute"
+          ]
+        },
+        {
+          "id": "question_2",
+          "points": 7,
+          "type": "short_answer",
+          "html": "What is cat?"
+        }
+      ]
+    }
+  ]
+}
