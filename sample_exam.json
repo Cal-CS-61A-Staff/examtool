@@ -41,7 +41,7 @@
       "points": 6,
       "questions": [
         {
-          "id": "question_1",
+          "id": "question_3",
           "type": "multiple_choice",
           "html": "<p><em>Go bears!</em></p>\n<p><span class=\"math inline\">\\(1+2\\)</span></p>\n<pre><code>Block code</code></pre>So what do you think about cats?\n",
           "points": 2,
@@ -52,7 +52,7 @@
           ]
         },
         {
-          "id": "question_1.5",
+          "id": "question_4.5",
           "type": "multiple_choice",
           "html": "What is cat?",
           "points": 4,
@@ -63,7 +63,7 @@
           ]
         },
         {
-          "id": "question_2",
+          "id": "question_5",
           "points": 7,
           "type": "short_answer",
           "html": "What is cat?"
