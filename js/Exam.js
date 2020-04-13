@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import { typeset } from "MathJax";
 import Question from "./Question";
 
-export default function Exam({ exam, token }) {
+export default function Exam({ exam }) {
     useEffect(() => typeset(), [exam]);
-    return exam.groups.map((group, i) => <Group group={group} i={i} token={token} />);
+    return exam.groups.map((group, i) => <Group group={group} i={i} />);
 }
 
-function Group({ group, i, token }) {
+function Group({ group, i }) {
     return (
         <>
             <div>
@@ -27,7 +27,7 @@ function Group({ group, i, token }) {
                 {/* eslint-disable-next-line react/no-danger */}
                 <div dangerouslySetInnerHTML={{ __html: group.html }} />
                 { group.questions.map((question, j) => (
-                    <Question question={question} i={i} j={j} token={token} />))}
+                    <Question question={question} i={i} j={j} />))}
             </div>
             <hr />
             <br />

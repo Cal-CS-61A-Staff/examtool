@@ -4,19 +4,22 @@ import {
 } from "react-bootstrap";
 import { auth2 } from "gapi";
 import Exam from "./Exam";
+import ExamContext from "./ExamContext";
 import PasswordDecryptor from "./PasswordDecryptor";
 import ExamDownloader from "./ExamDownloader";
 import GoogleSignInButton from "./GoogleSignInButton";
 
 export default function App() {
     const [username, setUsername] = useState(
-        window.location.hostname === "localhost" ? "rahularya@berkeley.edu" : "",
+        window.location.hostname === "localhost" ? "exam-test@berkeley.edu" : "",
     );
     const [token, setToken] = useState(null);
 
     const [selectedExam, setSelectedExam] = useState("");
 
     const [encryptedExam, setEncryptedExam] = useState(null);
+
+    const [savedAnswers, setSavedAnswers] = useState(null);
 
     const [decryptedExam, setDecryptedExam] = useState(null);
 
@@ -33,9 +36,10 @@ export default function App() {
         setEncryptedExam(null);
     };
 
-    const handleReceiveExam = ({ exam, payload }) => {
+    const handleReceiveExam = ({ exam, payload, answers }) => {
         setSelectedExam(exam);
         setEncryptedExam(payload);
+        setSavedAnswers(answers);
     };
 
     return (
@@ -140,7 +144,9 @@ export default function App() {
                 </>
             )}
             <br />
-            {decryptedExam && <Exam exam={decryptedExam} token={token} />}
+            <ExamContext.Provider value={{ token, exam: selectedExam, savedAnswers }}>
+                {decryptedExam && <Exam exam={decryptedExam} />}
+            </ExamContext.Provider>
         </Container>
     );
 }

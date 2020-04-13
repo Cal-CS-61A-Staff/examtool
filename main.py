@@ -3,9 +3,17 @@ from os import getenv
 from cryptography.fernet import Fernet
 from flask import jsonify
 from google.cloud import firestore
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from google.cloud.exceptions import NotFound
 
-
+# this should be private, but it's a dummy value right now
 KEY = b'U5VyveKIg1cyYzIBoQbkTKWrSsaC5NbnsSHvsw_2cPI='
+
+# this can be public
+CLIENT_ID = "568115963376-97j0amnm9fp5f7lfaq462gkkcqp1071m.apps.googleusercontent.com"
+
+DEV_EMAIL = getenv("DEV_EMAIL", "exam-test@berkeley.edu")
 
 
 def update_cache():
@@ -20,16 +28,22 @@ def update_cache():
 update_cache()
 
 
-def index(request):
-    """Responds to any HTTP request.
-    Args:
-        request (flask.Request): HTTP request object.
-    Returns:
-        The response text or any set of values that can be turned into a
-        Response object using
-        `make_response <http://flask.pocoo.org/docs/1.0/api/#flask.Flask.make_response>`.
-    """
+def get_email(request):
+    if getenv("ENV") == "dev":
+        return DEV_EMAIL
 
+    token = request.json["token"]
+
+    # validate token
+    id_info = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
+
+    if id_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+        raise ValueError('Wrong issuer.')
+
+    return id_info["email"]
+
+
+def index(request):
     if getenv("ENV") == "dev":
         update_cache()
 
@@ -44,20 +58,32 @@ def index(request):
     if request.path.endswith("get_exam"):
         with open("sample_exam.json") as f:
             content = f.read().encode("ascii")
+
+        exam = request.json["exam"]
+        email = get_email(request)
+        ref = db.collection(exam).document(email)
+        try:
+            answers = ref.get().to_dict() or {}
+        except NotFound:
+            answers = {}
+
         return jsonify({
             "success": True,
             "exam": "cs61a-final-wednesday",
-            "payload": Fernet(KEY).encrypt(content).decode("ascii")
+            "payload": Fernet(KEY).encrypt(content).decode("ascii"),
+            "answers": answers
         })
 
-    count = 0
-    if "count" in request.path:
-        for doc in db.collection("users").stream():
-            count += 1
-        return str(count)
+    if request.path.endswith("submit_question"):
+        exam = request.json["exam"]
+        question_id = request.json["id"]
+        value = request.json["value"]
+        email = get_email(request)
 
-    doc = db.collection("users").add({
-        "question_1": 1
-    })
+        db.collection(exam).document(email).set({
+            question_id: value,
+        }, merge=True)
+
+        return jsonify({"success": True})
 
     return request.path

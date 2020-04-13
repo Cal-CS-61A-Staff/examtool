@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Form, FormControl, InputGroup } from "react-bootstrap";
+import ExamContext from "./ExamContext";
 import FailText from "./FailText";
 import LoadingButton from "./LoadingButton";
 import post from "./post";
 
 export default function Question({
-    question, i, j, token,
+    question, i, j,
 }) {
-    const [value, setValue] = useState("");
-    const [savedValue, setSavedValue] = useState("");
+    const examContext = useContext(ExamContext);
+
+    const defaultValue = examContext.savedAnswers[question.id] || "";
+
+    const [value, setValue] = useState(defaultValue);
+    const [savedValue, setSavedValue] = useState(defaultValue);
     const [saving, setSaving] = useState(false);
     const [failText, setFailText] = useState("");
 
@@ -19,6 +24,7 @@ export default function Question({
                 {question.options.map((option) => (
                     <Form.Check
                         custom
+                        checked={value === option}
                         name={question.id}
                         type="radio"
                         label={option}
@@ -32,7 +38,7 @@ export default function Question({
     } else if (question.type === "short_answer") {
         contents = (
             <InputGroup className="mb-3">
-                <FormControl onChange={(e) => { setValue(e.target.value); }} />
+                <FormControl value={value} onChange={(e) => { setValue(e.target.value); }} />
             </InputGroup>
         );
     }
@@ -42,7 +48,8 @@ export default function Question({
         const ret = await post("submit_question", {
             id: question.id,
             value,
-            token,
+            token: examContext.token,
+            exam: examContext.exam,
         });
         setSaving(false);
         if (!ret.ok) {
@@ -54,6 +61,7 @@ export default function Question({
                 setFailText("Server responded but failed to save, please refresh and try again.");
             }
             setSavedValue(value);
+            setFailText("");
         } catch {
             setFailText("Server returned invalid JSON. Please try again.");
         }
