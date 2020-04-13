@@ -13,7 +13,6 @@ export default function App() {
     const [username, setUsername] = useState(
         window.location.hostname === "localhost" ? "exam-test@berkeley.edu" : "",
     );
-    const [token, setToken] = useState(null);
 
     const [selectedExam, setSelectedExam] = useState("");
 
@@ -26,7 +25,6 @@ export default function App() {
     const logout = (e) => {
         e.preventDefault();
         setUsername("");
-        setToken(null);
         auth2.getAuthInstance().signOut();
         window.location.reload();
     };
@@ -55,7 +53,6 @@ export default function App() {
                     {!username && (
                         <GoogleSignInButton onSuccess={(receivedUsername, receivedToken) => {
                             setUsername(receivedUsername);
-                            setToken(receivedToken);
                         }}
                         />
                     )}
@@ -114,7 +111,6 @@ export default function App() {
                             You can do this before the exam starts.
                         </p>
                         <ExamDownloader
-                            token={token}
                             exam={selectedExam}
                             onReceive={handleReceiveExam}
                         />
@@ -144,7 +140,7 @@ export default function App() {
                 </>
             )}
             <br />
-            <ExamContext.Provider value={{ token, exam: selectedExam, savedAnswers }}>
+            <ExamContext.Provider value={{ exam: selectedExam, savedAnswers }}>
                 {decryptedExam && <Exam exam={decryptedExam} />}
             </ExamContext.Provider>
         </Container>

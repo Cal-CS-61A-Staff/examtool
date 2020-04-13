@@ -1,9 +1,10 @@
 import React, { useState } from "react";
+import { getToken } from "./auth";
 import FailText from "./FailText";
 import LoadingButton from "./LoadingButton";
 import post from "./post";
 
-export default function ExamDownloader({ token, exam, onReceive }) {
+export default function ExamDownloader({ exam, onReceive }) {
     const [loading, setLoading] = useState(false);
 
     const [failText, setFailText] = useState("");
@@ -12,7 +13,7 @@ export default function ExamDownloader({ token, exam, onReceive }) {
         setLoading(true);
         setFailText("");
 
-        const ret = await post("get_exam", { token, exam });
+        const ret = await post("get_exam", { token: getToken(), exam });
         if (!ret.ok) {
             setFailText(`
                 The exam server failed with error ${ret.status}. Please try again. 

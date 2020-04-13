@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
 import { Form, FormControl, InputGroup } from "react-bootstrap";
+import { getToken } from "./auth";
 import ExamContext from "./ExamContext";
 import FailText from "./FailText";
 import LoadingButton from "./LoadingButton";
@@ -48,7 +49,7 @@ export default function Question({
         const ret = await post("submit_question", {
             id: question.id,
             value,
-            token: examContext.token,
+            token: getToken(),
             exam: examContext.exam,
         });
         setSaving(false);
