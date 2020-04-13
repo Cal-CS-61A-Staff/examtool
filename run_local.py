@@ -1,6 +1,21 @@
+import os
+import sys
+from os import getenv
+
 from flask import Flask, request
 
-from main import index
+mode = getenv("MODE")
+
+if mode == "student":
+    sys.path.append("student")
+    os.chdir("student")
+    from student.main import index
+
+if mode == "staff":
+    sys.path.append("staff")
+    os.chdir("staff")
+    from student.main import index
+
 
 app = Flask(__name__)
 

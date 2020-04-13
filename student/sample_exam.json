@@ -1,0 +1,75 @@
+{
+  "groups": [
+    {
+      "name": "",
+      "points": null,
+      "html": "<p>You can complete and submit these questions before the exam starts.</p>\n",
+      "questions": [
+        {
+          "id": "EKLCNVYCLGMLYCSOFJLLZPSSUYJGVACN",
+          "type": "short_answer",
+          "html": "<p>What is your name?</p>\n",
+          "options": null,
+          "points": null
+        },
+        {
+          "id": "UWLWRQVCAAWYHYGYGEEHDBGYYJUAWRAW",
+          "type": "short_answer",
+          "html": "<p>What is your student ID number?</p>\n",
+          "options": null,
+          "points": null
+        }
+      ]
+    },
+    {
+      "name": "WWPD",
+      "points": 6.0,
+      "html": "<p><em>This is some very important text</em>. This text is not so important.</p>\n",
+      "questions": [
+        {
+          "id": "SKJBWECWGWADQUSKDWNBAGYFDZMEIVYZ",
+          "type": "multiple_choice",
+          "html": "<p>What is cat?</p>\n",
+          "options": [
+            "<p>fat</p>\n",
+            "<p>smart</p>\n",
+            "<p>cute</p>\n"
+          ],
+          "points": 2.0
+        },
+        {
+          "id": "NCELNKDLXBNFZIKGDJWPCZOAOCKTRWFW",
+          "type": "short_answer",
+          "html": "<p>What <em>really</em> is cat?</p>\n",
+          "options": null,
+          "points": 4.0
+        }
+      ]
+    },
+    {
+      "name": "WWPD?",
+      "points": 6.0,
+      "html": "\n",
+      "questions": [
+        {
+          "id": "GIMKWCHVLANCAZVHFHQWHABSUULBGUKV",
+          "type": "multiple_choice",
+          "html": "<p>Solve the following integral: <span class=\"math display\">\\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]</span></p>\n",
+          "options": [
+            "<p>fat</p>\n",
+            "<p><span class=\"math inline\">\\(\\sqrt{2\\pi}\\)</span></p>\n",
+            "<p>cute</p>\n"
+          ],
+          "points": 3.0
+        },
+        {
+          "id": "XKYUHVHSMKSACPJECBCMNWWSLJZNWMQU",
+          "type": "short_answer",
+          "html": "<p>What would the following Python code do?</p>\n<pre><code>from operator import sub\n\nz = (lambda x: lambda y: 2 * (y-x))(3)\n\ndef breath(f, count=1):\n    if count &gt; 1:\n        print(count)\n    count += 1\n    return lambda x, y: f(x+1, y)\n\nclass Day:\n    aqi = 10\n    def __init__(self, aqi=0):\n        if aqi &gt; self.aqi:\n            self.aqi = aqi\n         self.n = []\n\ndef mask(self, limit):\n    def f(aqi):\n        if aqi &gt; limit:\n            self.n.append(aqi-limit)\n        return self.mask(aqi)\n    return f\n\nclass Week(Day):\n    aqi = 50\n\nm, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160</code></pre>\n",
+          "options": null,
+          "points": 7.0
+        }
+      ]
+    }
+  ]
+}

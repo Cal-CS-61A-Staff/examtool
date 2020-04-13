@@ -4,7 +4,11 @@ import Question from "./Question";
 
 export default function Exam({ exam }) {
     useEffect(() => typeset(), [exam]);
-    return exam.groups.map((group, i) => <Group group={group} i={i} />);
+    return (
+        <div className="exam">
+            {exam.groups.map((group, i) => <Group group={group} i={i} />)}
+        </div>
+    );
 }
 
 function Group({ group, i }) {

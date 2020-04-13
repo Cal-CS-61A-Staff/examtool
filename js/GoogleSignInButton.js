@@ -11,7 +11,6 @@ export default function GoogleSignInButton({ onSuccess }) {
                 onSuccess: (user) => {
                     onSuccess(
                         user.getBasicProfile().getEmail(),
-                        user.getAuthResponse().id_token,
                     );
                 },
             });

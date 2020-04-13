@@ -1,11 +1,12 @@
-const path = require("path");
-
 module.exports = {
-    entry: "./js/index.js",
+    entry: {
+        student: "./js/studentIndex.js",
+        staff: "./js/staffIndex.js",
+    },
     watch: true,
     output: {
-        filename: "main.js",
-        path: path.resolve(__dirname, "static"),
+        filename: "[name]/static/main.js",
+        path: __dirname,
     },
     externals: {
         react: "React",
@@ -13,7 +14,7 @@ module.exports = {
         "react-bootstrap": "ReactBootstrap",
         gapi: "gapi",
         fernet: "fernet",
-        MathJax: "MathJax"
+        MathJax: "MathJax",
     },
     module: {
         rules: [

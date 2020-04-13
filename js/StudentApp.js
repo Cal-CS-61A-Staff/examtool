@@ -9,7 +9,7 @@ import PasswordDecryptor from "./PasswordDecryptor";
 import ExamDownloader from "./ExamDownloader";
 import GoogleSignInButton from "./GoogleSignInButton";
 
-export default function App() {
+export default function StudentApp() {
     const [username, setUsername] = useState(
         window.location.hostname === "localhost" ? "exam-test@berkeley.edu" : "",
     );
@@ -51,9 +51,8 @@ export default function App() {
             <Row>
                 <Col>
                     {!username && (
-                        <GoogleSignInButton onSuccess={(receivedUsername, receivedToken) => {
-                            setUsername(receivedUsername);
-                        }}
+                        <GoogleSignInButton
+                            onSuccess={(receivedUsername) => setUsername(receivedUsername)}
                         />
                     )}
                     {username && (

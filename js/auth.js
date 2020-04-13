@@ -4,5 +4,5 @@ import { auth2 } from "gapi";
 export function getToken() {
     return window.location.hostname === "localhost"
         ? null
-        : auth2.getAuthInstance().currentUser.m3.value.tc.id_token;
+        : auth2.getAuthInstance().currentUser.get().getAuthResponse(true).id_token;
 }

@@ -28,7 +28,7 @@ export default function Question({
                         checked={value === option}
                         name={question.id}
                         type="radio"
-                        label={option}
+                        label={<span dangerouslySetInnerHTML={{ __html: option }} />}
                         value={option}
                         id={`${question.id}|${option}`}
                         onChange={(e) => { setValue(e.target.value); }}
