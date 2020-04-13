@@ -15,6 +15,7 @@ module.exports = {
         gapi: "gapi",
         fernet: "fernet",
         MathJax: "MathJax",
+        ace: "ace",
     },
     module: {
         rules: [
@@ -34,6 +35,10 @@ module.exports = {
                     emitError: false,
                     emitWarning: true,
                 },
+            },
+            {
+                test: /\.md$/i,
+                use: "raw-loader",
             },
         ],
     },

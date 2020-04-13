@@ -12,7 +12,7 @@ class LineBuffer:
 
     def pop(self) -> str:
         if self.i == len(self.lines):
-            raise EOFError
+            raise SyntaxError("File terminated unexpectedly")
         self.i += 1
         return self.lines[self.i - 1]
 
@@ -24,7 +24,7 @@ def directive_type(line):
     if not line.startswith("# BEGIN ") and not line.startswith("# END ") and not line.startswith("# INPUT "):
         return None, None, None
     tokens = line.split(" ", 3)
-    return tokens[1], tokens[2], tokens[3] if len(tokens) > 3 else ""
+    return tokens[1], tokens[2] if len(tokens) > 2 else "", tokens[3] if len(tokens) > 3 else ""
 
 
 def get_points(line):
@@ -115,7 +115,7 @@ def consume_rest_of_group(buff):
         elif mode == "END" and directive == "GROUP":
             return "\n".join(group_contents), questions
         else:
-            raise SyntaxError("Unexpected directive in GROUP", line)
+            raise SyntaxError("Unexpected directive in GROUP")
 
 
 def consume_group(buff):
@@ -140,21 +140,18 @@ def consume_group(buff):
 
 def convert(text):
     buff = LineBuffer(text)
-    public_group = None
     groups = []
 
     try:
         while not buff.empty():
             groups.append(consume_group(buff))
     except SyntaxError as e:
-        print("Parse stopped on line {} with error {}".format(buff.i, e))
-        raise
+        raise SyntaxError("Parse stopped on line {} with error {}".format(buff.i, e))
 
     return {
         "groups": groups,
     }
 
 
-with open("sample_exam.md") as f:
-    out = json.dumps(convert(f.read()), indent=2)
-    print(out)
+def convert_str(text):
+    return json.dumps(convert(text), indent=2)

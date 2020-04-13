@@ -1,13 +1,14 @@
-# BEGIN GROUP
+# BEGIN GROUP Preliminaries
 You can complete and submit these questions before the exam starts.
 
 # BEGIN QUESTION
-What is your name?
+What is your *true* name? with sprinkles
 # INPUT SHORT_ANSWER
 # END QUESTION
 
 # BEGIN QUESTION
 What is your student ID number?
+SeriouslY?
 # INPUT SHORT_ANSWER
 # END QUESTION
 
