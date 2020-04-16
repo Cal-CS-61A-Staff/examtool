@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
 import { typeset } from "MathJax";
+import Points from "./Points";
 import Question from "./Question";
 
 export default function Exam({ exam }) {
     useEffect(() => typeset(), [exam]);
     return (
         <div className="exam">
+            {exam.public && <Group group={exam.public} i={-1} />}
             {exam.groups.map((group, i) => <Group group={group} i={i} />)}
         </div>
     );
@@ -23,11 +25,9 @@ function Group({ group, i }) {
                     {" "}
                     {group.name}
                 </h3>
-                <small>
-                    Points:
-                    {" "}
-                    {group.points}
-                </small>
+                <Points
+                    points={group.points}
+                />
                 {/* eslint-disable-next-line react/no-danger */}
                 <div dangerouslySetInnerHTML={{ __html: group.html }} />
                 { group.questions.map((question, j) => (

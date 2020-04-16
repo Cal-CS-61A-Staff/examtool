@@ -4,6 +4,7 @@ import { getToken } from "./auth";
 import ExamContext from "./ExamContext";
 import FailText from "./FailText";
 import LoadingButton from "./LoadingButton";
+import Points from "./Points";
 import post from "./post";
 
 export default function Question({
@@ -40,6 +41,18 @@ export default function Question({
         contents = (
             <InputGroup className="mb-3">
                 <FormControl value={value} onChange={(e) => { setValue(e.target.value); }} />
+            </InputGroup>
+        );
+    } else if (question.type === "short_answer_code") {
+        contents = (
+            <InputGroup className="mb-3">
+                <FormControl
+                    style={{ fontFamily: "monospace" }}
+                    value={value}
+                    onChange={(e) => {
+                        setValue(e.target.value);
+                    }}
+                />
             </InputGroup>
         );
     }
@@ -79,11 +92,9 @@ export default function Question({
                         {j + 1}
                     </h5>
                     {" "}
-                    <small>
-                        Points:
-                        {" "}
-                        {question.points}
-                    </small>
+                    <Points
+                        points={question.points}
+                    />
                     <div
                         style={{ marginTop: 8 }}
                         dangerouslySetInnerHTML={{ __html: question.html }}

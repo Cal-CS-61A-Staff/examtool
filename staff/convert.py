@@ -62,6 +62,20 @@ def parse_input_lines(lines):
         if len(lines) > 1:
             raise SyntaxError("Multiple INPUT directives found for a SHORT_ANSWER")
         return "short_answer", None
+    elif directive == "SHORT_ANSWER_CODE":
+        if len(lines) > 1:
+            raise SyntaxError("Multiple INPUT directives found for a SHORT_ANSWER_CODE")
+        return "short_answer_code", None
+    elif directive == "LONG_ANSWER":
+        if len(lines) > 1:
+            raise SyntaxError("Multiple INPUT directives found for a LONG_ANSWER")
+        return "long_answer", None
+    elif directive == "LONG_ANSWER_CODE":
+        if len(lines) > 1:
+            raise SyntaxError("Multiple INPUT directives found for a LONG_ANSWER_CODE")
+        return "long_answer_code", None
+    else:
+        raise SyntaxError("Unrecognized directive: {}".format(directive))
 
 
 def consume_rest_of_question(buff):
@@ -92,7 +106,7 @@ def consume_rest_of_question(buff):
             raise SyntaxError("Unexpected directive in QUESTION")
 
 
-def consume_rest_of_group(buff):
+def consume_rest_of_group(buff, end):
     group_contents = []
     questions = []
     started_question = False
@@ -112,7 +126,7 @@ def consume_rest_of_group(buff):
             question = consume_rest_of_question(buff)
             question["points"] = points
             questions.append(question)
-        elif mode == "END" and directive == "GROUP":
+        elif mode == "END" and directive == end:
             return "\n".join(group_contents), questions
         else:
             raise SyntaxError("Unexpected directive in GROUP")
@@ -128,27 +142,35 @@ def consume_group(buff):
         raise SyntaxError("Expected BEGIN GROUP or BEGIN PUBLIC directive")
     title, points = get_points(rest)
 
-    body, questions = consume_rest_of_group(buff)
+    body, questions = consume_rest_of_group(buff, directive)
 
     return {
         "name": title,
         "points": points,
         "html": parse(body),
         "questions": questions,
-    }
+    }, directive == "PUBLIC"
 
 
 def convert(text):
     buff = LineBuffer(text)
     groups = []
+    public = None
 
     try:
         while not buff.empty():
-            groups.append(consume_group(buff))
+            group, is_public = consume_group(buff)
+            if is_public:
+                if public:
+                    raise SyntaxError("Only one PUBLIC block is allowed")
+                public = group
+            else:
+                groups.append(group)
     except SyntaxError as e:
         raise SyntaxError("Parse stopped on line {} with error {}".format(buff.i, e))
 
     return {
+        "public": public,
         "groups": groups,
     }
 

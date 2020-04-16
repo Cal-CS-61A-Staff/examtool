@@ -44,46 +44,49 @@ def get_email(request):
 
 
 def index(request):
-    if getenv("ENV") == "dev":
-        update_cache()
+    try:
+        if getenv("ENV") == "dev":
+            update_cache()
 
-    db = firestore.Client()
+        db = firestore.Client()
 
-    if request.path.endswith("main.js"):
-        return main_js
+        if request.path.endswith("main.js"):
+            return main_js
 
-    if request.path == "/":
-        return main_html
+        if request.path == "/":
+            return main_html
 
-    if request.path.endswith("get_exam"):
-        with open("sample_exam.json") as f:
-            content = f.read().encode("ascii")
+        if request.path.endswith("get_exam"):
+            with open("sample_exam.json") as f:
+                content = f.read().encode("ascii")
 
-        exam = request.json["exam"]
-        email = get_email(request)
-        ref = db.collection(exam).document(email)
-        try:
-            answers = ref.get().to_dict() or {}
-        except NotFound:
-            answers = {}
+            exam = request.json["exam"]
+            email = get_email(request)
+            ref = db.collection(exam).document(email)
+            try:
+                answers = ref.get().to_dict() or {}
+            except NotFound:
+                answers = {}
 
-        return jsonify({
-            "success": True,
-            "exam": "cs61a-final-wednesday",
-            "payload": Fernet(KEY).encrypt(content).decode("ascii"),
-            "answers": answers
-        })
+            return jsonify({
+                "success": True,
+                "exam": "cs61a-final-wednesday",
+                "payload": Fernet(KEY).encrypt(content).decode("ascii"),
+                "answers": answers
+            })
 
-    if request.path.endswith("submit_question"):
-        exam = request.json["exam"]
-        question_id = request.json["id"]
-        value = request.json["value"]
-        email = get_email(request)
+        if request.path.endswith("submit_question"):
+            exam = request.json["exam"]
+            question_id = request.json["id"]
+            value = request.json["value"]
+            email = get_email(request)
 
-        db.collection(exam).document(email).set({
-            question_id: value,
-        }, merge=True)
+            db.collection(exam).document(email).set({
+                question_id: value,
+            }, merge=True)
 
-        return jsonify({"success": True})
+            return jsonify({"success": True})
+    except:
+        return jsonify({"success": False})
 
     return request.path

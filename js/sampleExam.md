@@ -1,4 +1,4 @@
-# BEGIN GROUP Preliminaries
+# BEGIN PUBLIC Preliminaries
 You can complete and submit these questions before the exam starts.
 
 # BEGIN QUESTION
@@ -12,7 +12,7 @@ SeriouslY?
 # INPUT SHORT_ANSWER
 # END QUESTION
 
-# END GROUP
+# END PUBLIC
 
 # BEGIN GROUP WWPD [6]
 *This is some very important text*. This text is not so important.

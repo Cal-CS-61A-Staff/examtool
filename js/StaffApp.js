@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+    Button,
+    ButtonGroup,
     Col, Container, Row,
 } from "react-bootstrap";
 
@@ -15,6 +17,7 @@ export default function StaffApp() {
     const [exam, setExam] = useState(null);
     const [failText, setFailText] = useState("");
     const [loading, setLoading] = useState(false);
+    const [mode, setMode] = useState("live");
 
     const editorRef = useRef();
 
@@ -54,6 +57,11 @@ export default function StaffApp() {
                     <LoadingButton primary onClick={generate} loading={loading} disabled={loading}>
                         Generate
                     </LoadingButton>
+                    <ButtonGroup style={{ marginLeft: "10px" }} aria-label="Basic example">
+                        <Button variant="secondary" onClick={() => setMode("live")}>Live Exam</Button>
+                        <Button variant="secondary" onClick={() => setMode("pdf")}>PDF</Button>
+                        <Button variant="secondary" onClick={() => setMode("json")}>JSON</Button>
+                    </ButtonGroup>
                     <FailText text={failText} />
                     <br />
                     <div style={{
@@ -63,7 +71,12 @@ export default function StaffApp() {
                         padding: 10,
                     }}
                     >
-                        {exam && <Exam exam={exam} />}
+                        {mode === "live" && exam && <Exam exam={exam} />}
+                        {mode === "json" && (
+                            <div style={{ whiteSpace: "pre-wrap" }}>
+                                {JSON.stringify(exam, null, "\t")}
+                            </div>
+                        )}
                     </div>
                 </Col>
             </Row>
