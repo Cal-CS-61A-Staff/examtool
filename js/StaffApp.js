@@ -71,7 +71,12 @@ export default function StaffApp() {
                         padding: 10,
                     }}
                     >
-                        {mode === "live" && exam && <Exam exam={exam} />}
+                        {mode === "live" && exam && (
+                            <Exam
+                                groups={exam.groups}
+                                publicGroup={exam.public}
+                            />
+                        )}
                         {mode === "json" && (
                             <div style={{ whiteSpace: "pre-wrap" }}>
                                 {JSON.stringify(exam, null, "\t")}

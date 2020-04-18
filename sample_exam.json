@@ -1,0 +1,89 @@
+{
+	"public": {
+		"name": "Preliminaries",
+		"points": null,
+		"html": "<p>You can complete and submit these questions before the exam starts.</p>\n",
+		"questions": [
+			{
+				"id": "CQQBRHVJHPXBAPUIMLFTQKWVDXVPHBRO",
+				"type": "short_answer",
+				"html": "<p>What is your full name?</p>\n",
+				"options": null,
+				"points": null
+			},
+			{
+				"id": "IPMLGJDOKBAJMHJLHIBGPLTUCNGAMIUN",
+				"type": "short_code_answer",
+				"html": "<p>What is your student ID number?</p>\n",
+				"options": null,
+				"points": null
+			}
+		]
+	},
+	"groups": [
+		{
+			"name": "Exam Question One",
+			"points": 6,
+			"html": "<p><em>This is some very important text</em>. This text is not so important.</p>\n",
+			"questions": [
+				{
+					"id": "QUSFVVSWFCYADFNJQRQXSMIZVFPNUTVL",
+					"type": "multiple_choice",
+					"html": "<p>These are some multiple choice questions. You must select exactly one.</p>\n",
+					"options": [
+						"<p>Options can be plain text.</p>\n",
+						"<p>Or <span class=\"math inline\">\\(\\LaTeX\\)</span> math,</p>\n",
+						"<p>Or even <code>code</code>!</p>\n"
+					],
+					"points": 2
+				},
+				{
+					"id": "QWKHJFUNKQDVQPTNYNYPUKRMCMQHKYNQ",
+					"type": "short_answer",
+					"html": "<p>This is a short answer question.</p>\n",
+					"options": null,
+					"points": 4
+				}
+			]
+		},
+		{
+			"name": "Another Exam Question",
+			"points": 6,
+			"html": "<p>This is another block of questions.</p>\n",
+			"questions": [
+				{
+					"id": "LHHSSCLTRCUEYWJDGQNZHTRYGREGVHJH",
+					"type": "select_all",
+					"html": "<p><span class=\"math inline\">\\(\\LaTeX\\)</span> display math is also supported <span class=\"math display\">\\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]</span></p>\n",
+					"options": [
+						"<p>Select all</p>\n",
+						"<p>options</p>\n",
+						"<p>are also available</p>\n"
+					],
+					"points": 3
+				},
+				{
+					"id": "RKRYGQPGDMAJKNRDHAURVGWPBPEJWUCN",
+					"type": "long_code_answer",
+					"html": "<p>You can also include large code blocks in questions</p>\n<pre><code>m, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160</code></pre>\n<p>And allow code in answers too</p>\n",
+					"options": 10,
+					"points": 7
+				},
+				{
+					"id": "ZZSDBHQGLFFMCNHGZYXFNFHWCZEYULMS",
+					"type": "long_answer",
+					"html": "<p>You can omit point values for particular questions, if you want.</p>\n<p>Paragraph answers are allowed. You can even specify the number of lines displayed! This block is four lines long.</p>\n",
+					"options": 4,
+					"points": null
+				},
+				{
+					"id": "RGCRMDRHPEVYKNUPYKJCRBSCHDHPCVXD",
+					"type": "short_code_answer",
+					"html": "<p>Images and other markdown features should all be supported. If it works on GitHub, it should work here.</p>\n<h2 id=\"stuff\">Stuff</h2>\n<figure>\n<img src=\"https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png\" title=\"Logo Title Text 1\" />\n</figure>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Tables</th>\n<th style=\"text-align: center;\">Are</th>\n<th style=\"text-align: right;\">Cool</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>col 3 is</td>\n<td style=\"text-align: center;\">right-aligned</td>\n<td style=\"text-align: right;\">$1600</td>\n</tr>\n<tr class=\"even\">\n<td>col 2 is</td>\n<td style=\"text-align: center;\">centered</td>\n<td style=\"text-align: right;\">$12</td>\n</tr>\n<tr class=\"odd\">\n<td>zebra stripes</td>\n<td style=\"text-align: center;\">are neat</td>\n<td style=\"text-align: right;\">$1</td>\n</tr>\n</tbody>\n</table>\n",
+					"options": null,
+					"points": null
+				}
+			]
+		}
+	]
+}

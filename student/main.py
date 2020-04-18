@@ -1,3 +1,4 @@
+import json
 from os import getenv
 
 from cryptography.fernet import Fernet
@@ -6,6 +7,8 @@ from google.cloud import firestore
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from google.cloud.exceptions import NotFound
+
+from scramble import scramble
 
 # this should be private, but it's a dummy value right now
 KEY = b'U5VyveKIg1cyYzIBoQbkTKWrSsaC5NbnsSHvsw_2cPI='
@@ -57,9 +60,6 @@ def index(request):
             return main_html
 
         if request.path.endswith("get_exam"):
-            with open("sample_exam.json") as f:
-                content = f.read().encode("ascii")
-
             exam = request.json["exam"]
             email = get_email(request)
             ref = db.collection(exam).document(email)
@@ -68,10 +68,14 @@ def index(request):
             except NotFound:
                 answers = {}
 
+            exam_data = db.collection("exams").document(exam).get().to_dict()
+            exam_data = scramble(email, exam_data)
+
             return jsonify({
                 "success": True,
-                "exam": "cs61a-final-wednesday",
-                "payload": Fernet(KEY).encrypt(content).decode("ascii"),
+                "exam": exam,
+                "publicGroup": exam_data["public"],
+                "privateGroups": Fernet(KEY).encrypt(json.dumps(exam_data["groups"]).encode("ascii")).decode("ascii"),
                 "answers": answers
             })
 

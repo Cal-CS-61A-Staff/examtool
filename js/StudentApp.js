@@ -16,11 +16,13 @@ export default function StudentApp() {
 
     const [selectedExam, setSelectedExam] = useState("");
 
-    const [encryptedExam, setEncryptedExam] = useState(null);
+    const [publicGroup, setPublicGroup] = useState(null);
+
+    const [encryptedGroups, setEncryptedGroups] = useState(null);
 
     const [savedAnswers, setSavedAnswers] = useState(null);
 
-    const [decryptedExam, setDecryptedExam] = useState(null);
+    const [decryptedGroups, setDecryptedGroups] = useState(null);
 
     const logout = (e) => {
         e.preventDefault();
@@ -31,13 +33,17 @@ export default function StudentApp() {
 
     const handleExamSelect = (e) => {
         setSelectedExam(e.target.value);
-        setEncryptedExam(null);
+        setEncryptedGroups(null);
     };
 
-    const handleReceiveExam = ({ exam, payload, answers }) => {
-        setSelectedExam(exam);
-        setEncryptedExam(payload);
+    const handleReceiveExam = ({
+        // eslint-disable-next-line no-shadow
+        exam, publicGroup, privateGroups, answers,
+    }) => {
         setSavedAnswers(answers);
+        setSelectedExam(exam);
+        setPublicGroup(publicGroup);
+        setEncryptedGroups(privateGroups);
     };
 
     return (
@@ -70,7 +76,7 @@ export default function StudentApp() {
                     )}
                 </Col>
             </Row>
-            {(username && !encryptedExam) && (
+            {(username && !encryptedGroups) && (
                 <>
                     <br />
                     <Row>
@@ -96,7 +102,7 @@ export default function StudentApp() {
                     </Row>
                 </>
             )}
-            {(selectedExam && !encryptedExam) && (
+            {(selectedExam && !encryptedGroups) && (
                 <Row>
                     <Col>
                         <p>
@@ -116,7 +122,7 @@ export default function StudentApp() {
                     </Col>
                 </Row>
             )}
-            {(encryptedExam && !decryptedExam) && (
+            {(encryptedGroups && !decryptedGroups) && (
                 <>
                     <br />
                     <Row>
@@ -131,8 +137,8 @@ export default function StudentApp() {
                                 and start the exam.
                             </p>
                             <PasswordDecryptor
-                                encryptedExam={encryptedExam}
-                                onDecrypt={setDecryptedExam}
+                                encryptedExam={encryptedGroups}
+                                onDecrypt={setDecryptedGroups}
                             />
                         </Col>
                     </Row>
@@ -140,7 +146,7 @@ export default function StudentApp() {
             )}
             <br />
             <ExamContext.Provider value={{ exam: selectedExam, savedAnswers }}>
-                {decryptedExam && <Exam exam={decryptedExam} />}
+                <Exam publicGroup={publicGroup} groups={decryptedGroups} />
             </ExamContext.Provider>
         </Container>
     );

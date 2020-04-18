@@ -3,12 +3,12 @@ import { typeset } from "MathJax";
 import Points from "./Points";
 import Question from "./Question";
 
-export default function Exam({ exam }) {
-    useEffect(() => typeset(), [exam]);
+export default function Exam({ groups, publicGroup }) {
+    useEffect(() => typeset(), [groups]);
     return (
         <div className="exam">
-            {exam.public && <Group group={exam.public} i={-1} />}
-            {exam.groups.map((group, i) => <Group group={group} i={i} />)}
+            {publicGroup && <Group group={publicGroup} i={-1} />}
+            {groups && groups.map((group, i) => <Group group={group} i={i} />)}
         </div>
     );
 }

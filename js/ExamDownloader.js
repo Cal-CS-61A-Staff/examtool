@@ -27,8 +27,9 @@ export default function ExamDownloader({ exam, onReceive }) {
                 setFailText(`
                     The exam server responded but did not produce a valid exam. Please try again. 
                 `);
+            } else {
+                onReceive(data);
             }
-            onReceive(data);
         } catch {
             setFailText("The web server returned invalid JSON. Please try again.");
         }

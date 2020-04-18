@@ -2,32 +2,31 @@
 You can complete and submit these questions before the exam starts.
 
 # BEGIN QUESTION
-What is your *true* name? with sprinkles
+What is your full name?
 # INPUT SHORT_ANSWER
 # END QUESTION
 
 # BEGIN QUESTION
 What is your student ID number?
-SeriouslY?
-# INPUT SHORT_ANSWER
+# INPUT SHORT_CODE_ANSWER
 # END QUESTION
 
 # END PUBLIC
 
-# BEGIN GROUP WWPD [6]
+# BEGIN GROUP Exam Question One [6]
 *This is some very important text*. This text is not so important.
 
 # BEGIN QUESTION [2]
-What is cat?
+These are some multiple choice questions. You must select exactly one.
 
-# INPUT OPTION fat
-# INPUT OPTION smart
-# INPUT OPTION cute
+# INPUT OPTION Options can be plain text.
+# INPUT OPTION Or $\LaTeX$ math,
+# INPUT OPTION Or even `code`!
 
 # END QUESTION
 
 # BEGIN QUESTION [4]
-What _really_ is cat?
+This is a short answer question.
 
 # INPUT SHORT_ANSWER
 
@@ -35,58 +34,62 @@ What _really_ is cat?
 
 # END GROUP
 
-# BEGIN GROUP WWPD? [6]
+# BEGIN GROUP Another Exam Question [6]
+
+This is another block of questions.
 
 # BEGIN QUESTION [3]
 
-Solve the following integral:
+$\LaTeX$ display math is also supported
 $$
     \int_{0}^\infty e^{-x^2 / 2} \, \mathrm{d}x
 $$
 
-# INPUT OPTION fat
-# INPUT OPTION $\sqrt{2\pi}$
-# INPUT OPTION cute
+# INPUT SELECT Select all
+# INPUT SELECT options
+# INPUT SELECT are also available
 
 # END QUESTION
 
 # BEGIN QUESTION [7]
-What would the following Python code do?
+You can also include large code blocks in questions
 ```
-from operator import sub
-
-z = (lambda x: lambda y: 2 * (y-x))(3)
-
-def breath(f, count=1):
-    if count > 1:
-        print(count)
-    count += 1
-    return lambda x, y: f(x+1, y)
-
-class Day:
-    aqi = 10
-    def __init__(self, aqi=0):
-        if aqi > self.aqi:
-            self.aqi = aqi
-         self.n = []
-
-def mask(self, limit):
-    def f(aqi):
-        if aqi > limit:
-            self.n.append(aqi-limit)
-        return self.mask(aqi)
-    return f
-
-class Week(Day):
-    aqi = 50
-
 m, t = Day(), Week(199)
 t.mask(200)(100)(150)(160)
 Day.aqi = 140
 t.aqi = 160
 ```
 
-# INPUT SHORT_ANSWER
+And allow code in answers too
+# INPUT LONG_CODE_ANSWER
+
+# END QUESTION
+
+# BEGIN QUESTION
+
+You can omit point values for particular questions, if you want.
+
+Paragraph answers are allowed. You can even specify the number of lines displayed! This block is four lines long.
+
+# INPUT LONG_ANSWER 4
+
+# END QUESTION
+
+# BEGIN QUESTION
+
+Images and other markdown features should all be supported. If it works on GitHub, it should work here.
+
+## Stuff
+
+![](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+# INPUT SHORT_CODE_ANSWER
 
 # END QUESTION
 

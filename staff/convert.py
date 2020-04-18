@@ -58,24 +58,22 @@ def parse_input_lines(lines):
                 raise SyntaxError("Multiple INPUT types found in a single QUESTION")
             options.append(parse(rest))
         return "multiple_choice" if directive == "OPTION" else "select_all", options
-    elif directive == "SHORT_ANSWER":
+    elif directive in ("SHORT_ANSWER", "SHORT_CODE_ANSWER", "LONG_ANSWER", "LONG_CODE_ANSWER"):
         if len(lines) > 1:
-            raise SyntaxError("Multiple INPUT directives found for a SHORT_ANSWER")
-        return "short_answer", None
-    elif directive == "SHORT_ANSWER_CODE":
-        if len(lines) > 1:
-            raise SyntaxError("Multiple INPUT directives found for a SHORT_ANSWER_CODE")
-        return "short_answer_code", None
-    elif directive == "LONG_ANSWER":
-        if len(lines) > 1:
-            raise SyntaxError("Multiple INPUT directives found for a LONG_ANSWER")
-        return "long_answer", None
-    elif directive == "LONG_ANSWER_CODE":
-        if len(lines) > 1:
-            raise SyntaxError("Multiple INPUT directives found for a LONG_ANSWER_CODE")
-        return "long_answer_code", None
-    else:
-        raise SyntaxError("Unrecognized directive: {}".format(directive))
+            raise SyntaxError("Multiple INPUT directives found for a {}".format(directive))
+        if directive == "SHORT_ANSWER":
+            return "short_answer", None
+        elif directive == "SHORT_CODE_ANSWER":
+            return "short_code_answer", None
+        try:
+            num_lines = int(rest or "10")
+        except TypeError:
+            raise SyntaxError("Expected integer as option for {}".format(directive))
+        if directive == "LONG_ANSWER":
+            return "long_answer", num_lines
+        elif directive == "LONG_CODE_ANSWER":
+            return "long_code_answer", num_lines
+    raise SyntaxError("Unrecognized directive: {}".format(directive))
 
 
 def consume_rest_of_question(buff):
@@ -176,4 +174,4 @@ def convert(text):
 
 
 def convert_str(text):
-    return json.dumps(convert(text), indent=2)
+    return json.dumps(convert(text))
