@@ -43,7 +43,11 @@ def rand_id():
 
 
 def parse(text):
-    return pypandoc.convert_text(text, "html5", "md", ["--mathjax"])
+    return {
+        "html": pypandoc.convert_text(text, "html5", "md", ["--mathjax"]),
+        "tex": pypandoc.convert_text(text, "latex", "md"),
+        "text": text,
+    }
 
 
 def parse_input_lines(lines):
@@ -95,7 +99,7 @@ def consume_rest_of_question(buff):
                 return {
                     "id": rand_id(),
                     "type": question_type,
-                    "html": parse("\n".join(contents)),
+                    **parse("\n".join(contents)),
                     "options": options,
                 }
             else:
@@ -145,7 +149,7 @@ def consume_group(buff):
     return {
         "name": title,
         "points": points,
-        "html": parse(body),
+        **parse(body),
         "questions": questions,
     }, directive == "PUBLIC"
 

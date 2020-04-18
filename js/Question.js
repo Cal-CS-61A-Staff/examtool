@@ -39,12 +39,12 @@ export default function Question({
                 {question.options.map((option) => (
                     <Form.Check
                         custom
-                        checked={value === option}
+                        checked={value === option.text}
                         name={question.id}
                         type="radio"
-                        label={<span dangerouslySetInnerHTML={{ __html: option }} />}
-                        value={option}
-                        id={`${question.id}|${option}`}
+                        label={<span dangerouslySetInnerHTML={{ __html: option.html }} />}
+                        value={option.text}
+                        id={`${question.id}|${option.text}`}
                         onChange={(e) => { setValue(e.target.value); }}
                     />
                 ))}
@@ -109,32 +109,40 @@ export default function Question({
     }
 
     const submit = async () => {
-        setSaving(true);
-        const ret = await post("submit_question", {
-            id: question.id,
-            value,
-            token: getToken(),
-            exam: examContext.exam,
-        });
-        setSaving(false);
-        if (!ret.ok) {
-            setFailText("Server failed to respond, please try again.");
+        if (value === savedValue || saving) {
+            return;
         }
+        setSaving(true);
         try {
-            const data = await ret.json();
-            if (!data.success) {
-                setFailText("Server responded but failed to save, please refresh and try again.");
+            const ret = await post("submit_question", {
+                id: question.id,
+                value,
+                token: getToken(),
+                exam: examContext.exam,
+            });
+            setSaving(false);
+            if (!ret.ok) {
+                setFailText("Server failed to respond, please try again.");
             }
-            setSavedValue(value);
-            setFailText("");
+            try {
+                const data = await ret.json();
+                if (!data.success) {
+                    setFailText("Server responded but failed to save, please refresh and try again.");
+                }
+                setSavedValue(value);
+                setFailText("");
+            } catch {
+                setFailText("Server returned invalid JSON. Please try again.");
+            }
         } catch {
-            setFailText("Server returned invalid JSON. Please try again.");
+            setSaving(false);
+            setFailText("Unable to reach server, your network may have issues.");
         }
     };
 
     return (
         <>
-            <Form>
+            <Form onSubmit={(e) => { e.preventDefault(); submit(); }}>
                 <Form.Label>
                     <h5 style={{ marginTop: 8, marginBottom: 0 }}>
                         Q

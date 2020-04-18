@@ -12,26 +12,29 @@ export default function ExamDownloader({ exam, onReceive }) {
     const download = async () => {
         setLoading(true);
         setFailText("");
-
-        const ret = await post("get_exam", { token: getToken(), exam });
-        if (!ret.ok) {
-            setFailText(`
+        try {
+            const ret = await post("get_exam", { token: getToken(), exam });
+            if (!ret.ok) {
+                setFailText(`
                 The exam server failed with error ${ret.status}. Please try again. 
             `);
-        }
+            }
 
-        try {
-            const data = await ret.json();
+            try {
+                const data = await ret.json();
 
-            if (!data.success) {
-                setFailText(`
+                if (!data.success) {
+                    setFailText(`
                     The exam server responded but did not produce a valid exam. Please try again. 
                 `);
-            } else {
-                onReceive(data);
+                } else {
+                    onReceive(data);
+                }
+            } catch {
+                setFailText("The web server returned invalid JSON. Please try again.");
             }
         } catch {
-            setFailText("The web server returned invalid JSON. Please try again.");
+            setFailText("Unable to reach server, your network may have issues.");
         }
 
         setLoading(false);

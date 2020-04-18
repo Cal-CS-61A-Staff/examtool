@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Col, Container, Form, Row,
 } from "react-bootstrap";
@@ -8,11 +8,14 @@ import ExamContext from "./ExamContext";
 import PasswordDecryptor from "./PasswordDecryptor";
 import ExamDownloader from "./ExamDownloader";
 import GoogleSignInButton from "./GoogleSignInButton";
+import post from "./post";
 
 export default function StudentApp() {
     const [username, setUsername] = useState(
         window.location.hostname === "localhost" ? "exam-test@berkeley.edu" : "",
     );
+
+    const [examList, setExamList] = useState([]);
 
     const [selectedExam, setSelectedExam] = useState("");
 
@@ -23,6 +26,13 @@ export default function StudentApp() {
     const [savedAnswers, setSavedAnswers] = useState(null);
 
     const [decryptedGroups, setDecryptedGroups] = useState(null);
+
+    useEffect(() => {
+        const go = async () => {
+            setExamList(await (await post("list_exams")).json());
+        };
+        go();
+    }, []);
 
     const logout = (e) => {
         e.preventDefault();
@@ -91,10 +101,7 @@ export default function StudentApp() {
                                         custom
                                     >
                                         <option hidden disabled selected value="">Select an exam</option>
-                                        <option>cs61a-exam-test</option>
-                                        <option>cs61a-final-monday</option>
-                                        <option>cs61a-final-wednesday</option>
-                                        <option>cs61a-final-friday</option>
+                                        {examList.map((exam) => <option>{exam}</option>)}
                                     </Form.Control>
                                 </Form.Group>
                             </Form>

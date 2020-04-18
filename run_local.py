@@ -7,7 +7,7 @@ from flask import Flask, request
 mode = getenv("MODE")
 
 if mode == "student":
-    sys.path.append("student")
+    sys.path.append(os.path.abspath("student"))
     os.chdir("student")
     from student.main import index
 

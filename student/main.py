@@ -1,4 +1,5 @@
 import json
+import sys
 from os import getenv
 
 from cryptography.fernet import Fernet
@@ -58,6 +59,9 @@ def index(request):
 
         if request.path == "/":
             return main_html
+
+        if request.path.endswith("list_exams"):
+            return jsonify(db.collection("exams").document("all").get().to_dict()["exam-list"])
 
         if request.path.endswith("get_exam"):
             exam = request.json["exam"]
