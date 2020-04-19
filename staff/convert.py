@@ -21,7 +21,7 @@ class LineBuffer:
 
 
 def directive_type(line):
-    if not line.startswith("# BEGIN ") and not line.startswith("# END ") and not line.startswith("# INPUT "):
+    if not any(line.startswith(f"# {x} ") for x in ["BEGIN", "END", "INPUT", "CONFIG"]):
         return None, None, None
     tokens = line.split(" ", 3)
     return tokens[1], tokens[2] if len(tokens) > 2 else "", tokens[3] if len(tokens) > 3 else ""
@@ -134,46 +134,47 @@ def consume_rest_of_group(buff, end):
             raise SyntaxError("Unexpected directive in GROUP")
 
 
-def consume_group(buff):
-    while True:
-        group_line = buff.pop()
-        if group_line.strip():
-            break
-    mode, directive, rest = directive_type(group_line)
-    if mode != "BEGIN" or directive not in ("GROUP", "PUBLIC"):
-        raise SyntaxError("Expected BEGIN GROUP or BEGIN PUBLIC directive")
-    title, points = get_points(rest)
-
-    body, questions = consume_rest_of_group(buff, directive)
-
-    return {
-        "name": title,
-        "points": points,
-        **parse(body),
-        "questions": questions,
-    }, directive == "PUBLIC"
-
-
 def convert(text):
     buff = LineBuffer(text)
     groups = []
     public = None
+    config = []
 
     try:
         while not buff.empty():
-            group, is_public = consume_group(buff)
-            if is_public:
-                if public:
-                    raise SyntaxError("Only one PUBLIC block is allowed")
-                public = group
+            line = buff.pop()
+            if not line.strip():
+                continue
+            mode, directive, rest = directive_type(line)
+            if mode == "CONFIG":
+                if directive in ["SCRAMBLE_GROUPS", "SCRAMBLE_QUESTIONS", "SCRAMBLE_OPTIONS"]:
+                    config.append(directive.lower())
+                else:
+                    raise SyntaxError("Unexpected CONFIG directive {}".format(directive))
+            elif mode == "BEGIN" and directive in ["GROUP", "PUBLIC"]:
+                title, points = get_points(rest)
+                body, questions = consume_rest_of_group(buff, directive)
+                group = {
+                    "name": title,
+                    "points": points,
+                    **parse(body),
+                    "questions": questions,
+                }
+                if directive == "PUBLIC":
+                    if public:
+                        raise SyntaxError("Only one PUBLIC block is allowed")
+                    public = group
+                else:
+                    groups.append(group)
             else:
-                groups.append(group)
+                raise SyntaxError("Unexpected directive")
     except SyntaxError as e:
         raise SyntaxError("Parse stopped on line {} with error {}".format(buff.i, e))
 
     return {
         "public": public,
         "groups": groups,
+        "config": config,
     }
 
 

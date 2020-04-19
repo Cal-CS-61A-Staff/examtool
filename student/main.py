@@ -12,7 +12,7 @@ from google.cloud.exceptions import NotFound
 from scramble import scramble
 
 # this should be private, but it's a dummy value right now
-KEY = b'U5VyveKIg1cyYzIBoQbkTKWrSsaC5NbnsSHvsw_2cPI='
+KEY = b"U5VyveKIg1cyYzIBoQbkTKWrSsaC5NbnsSHvsw_2cPI="
 
 # this can be public
 CLIENT_ID = "568115963376-97j0amnm9fp5f7lfaq462gkkcqp1071m.apps.googleusercontent.com"
@@ -41,8 +41,8 @@ def get_email(request):
     # validate token
     id_info = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
 
-    if id_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-        raise ValueError('Wrong issuer.')
+    if id_info["iss"] not in ["accounts.google.com", "https://accounts.google.com"]:
+        raise ValueError("Wrong issuer.")
 
     return id_info["email"]
 
@@ -61,7 +61,9 @@ def index(request):
             return main_html
 
         if request.path.endswith("list_exams"):
-            return jsonify(db.collection("exams").document("all").get().to_dict()["exam-list"])
+            return jsonify(
+                db.collection("exams").document("all").get().to_dict()["exam-list"]
+            )
 
         if request.path.endswith("get_exam"):
             exam = request.json["exam"]
@@ -73,15 +75,26 @@ def index(request):
                 answers = {}
 
             exam_data = db.collection("exams").document(exam).get().to_dict()
-            exam_data = scramble(email, exam_data)
+            config = exam_data["config"]
+            exam_data = scramble(
+                email,
+                exam_data,
+                groups="scramble_groups" in config,
+                questions="scramble_questions" in config,
+                options="scramble_options" in config,
+            )
 
-            return jsonify({
-                "success": True,
-                "exam": exam,
-                "publicGroup": exam_data["public"],
-                "privateGroups": Fernet(KEY).encrypt(json.dumps(exam_data["groups"]).encode("ascii")).decode("ascii"),
-                "answers": answers
-            })
+            return jsonify(
+                {
+                    "success": True,
+                    "exam": exam,
+                    "publicGroup": exam_data["public"],
+                    "privateGroups": Fernet(KEY)
+                    .encrypt(json.dumps(exam_data["groups"]).encode("ascii"))
+                    .decode("ascii"),
+                    "answers": answers,
+                }
+            )
 
         if request.path.endswith("submit_question"):
             exam = request.json["exam"]
@@ -89,9 +102,7 @@ def index(request):
             value = request.json["value"]
             email = get_email(request)
 
-            db.collection(exam).document(email).set({
-                question_id: value,
-            }, merge=True)
+            db.collection(exam).document(email).set({question_id: value}, merge=True)
 
             return jsonify({"success": True})
     except:

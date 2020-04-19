@@ -1,3 +1,7 @@
+# CONFIG SCRAMBLE_GROUPS
+# CONFIG SCRAMBLE_QUESTIONS
+# CONFIG SCRAMBLE_OPTIONS
+
 # BEGIN PUBLIC Preliminaries
 You can complete and submit these questions before the exam starts.
 

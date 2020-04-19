@@ -45,6 +45,19 @@ export default function StaffApp() {
         }
     };
 
+    const renderPDF = () => {
+        const form = document.createElement("form");
+        form.action = "/exam-server/render";
+        form.method = "POST";
+        form.target = "_blank";
+        const input = document.createElement("input");
+        input.name = "exam";
+        input.value = JSON.stringify(exam);
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    };
+
     return (
         <Container fluid>
             <br />
@@ -59,7 +72,7 @@ export default function StaffApp() {
                     </LoadingButton>
                     <ButtonGroup style={{ marginLeft: "10px" }} aria-label="Basic example">
                         <Button variant="secondary" onClick={() => setMode("live")}>Live Exam</Button>
-                        <Button variant="secondary" onClick={() => setMode("pdf")}>PDF</Button>
+                        <Button variant="secondary" onClick={renderPDF}>PDF</Button>
                         <Button variant="secondary" onClick={() => setMode("json")}>JSON</Button>
                     </ButtonGroup>
                     <FailText text={failText} />
