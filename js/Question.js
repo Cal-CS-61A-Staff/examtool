@@ -16,7 +16,7 @@ export default function Question({
 }) {
     const examContext = useContext(ExamContext);
 
-    const defaultValue = JSON.parse(examContext.savedAnswers[question.id] || JSON.stringify(""));
+    const defaultValue = examContext.savedAnswers[question.id] || "";
 
     const [value, setValue] = useState(defaultValue);
     const [savedValue, setSavedValue] = useState(defaultValue);
@@ -60,13 +60,19 @@ export default function Question({
                 {question.options.map((option) => (
                     <Form.Check
                         custom
-                        checked={value.includes[option.text]}
+                        checked={value.includes(option.text)}
                         name={question.id}
                         type="checkbox"
                         label={<span dangerouslySetInnerHTML={{ __html: option.html }} />}
                         value={option.text}
                         id={`${question.id}|${option.text}`}
-                        onChange={(e) => { setValue(e.target.value); }}
+                        onChange={(e) => {
+                            setValue(
+                                (Array.isArray(value) ? value : [])
+                                    .filter((x) => x !== e.target.value)
+                                    .concat(e.target.checked ? [e.target.value] : []),
+                            );
+                        }}
                     />
                 ))}
             </div>
@@ -137,7 +143,7 @@ export default function Question({
         try {
             const ret = await post("submit_question", {
                 id: question.id,
-                value: JSON.stringify(val),
+                value: val,
                 token: getToken(),
                 exam: examContext.exam,
             });
