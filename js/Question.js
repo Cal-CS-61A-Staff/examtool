@@ -1,8 +1,10 @@
 import React, {
-    useContext, useLayoutEffect, useRef, useState,
+    useCallback,
+    useContext, useEffect, useLayoutEffect, useRef, useState,
 } from "react";
 import { Form, FormControl, InputGroup } from "react-bootstrap";
 import { getToken } from "./auth";
+import debounce from "./debounce";
 import ExamContext from "./ExamContext";
 import FailText from "./FailText";
 import LoadingButton from "./LoadingButton";
@@ -14,7 +16,7 @@ export default function Question({
 }) {
     const examContext = useContext(ExamContext);
 
-    const defaultValue = examContext.savedAnswers[question.id] || "";
+    const defaultValue = JSON.parse(examContext.savedAnswers[question.id] || JSON.stringify(""));
 
     const [value, setValue] = useState(defaultValue);
     const [savedValue, setSavedValue] = useState(defaultValue);
@@ -42,6 +44,25 @@ export default function Question({
                         checked={value === option.text}
                         name={question.id}
                         type="radio"
+                        label={<span dangerouslySetInnerHTML={{ __html: option.html }} />}
+                        value={option.text}
+                        id={`${question.id}|${option.text}`}
+                        onChange={(e) => {
+                            setValue(e.target.value);
+                        }}
+                    />
+                ))}
+            </div>
+        );
+    } else if (question.type === "select_all") {
+        contents = (
+            <div style={{ marginBottom: 10 }}>
+                {question.options.map((option) => (
+                    <Form.Check
+                        custom
+                        checked={value.includes[option.text]}
+                        name={question.id}
+                        type="checkbox"
                         label={<span dangerouslySetInnerHTML={{ __html: option.html }} />}
                         value={option.text}
                         id={`${question.id}|${option.text}`}
@@ -108,15 +129,15 @@ export default function Question({
         );
     }
 
-    const submit = async () => {
-        if (value === savedValue || saving) {
+    const submitValue = async (val, savedVal) => {
+        if (val === savedVal || saving) {
             return;
         }
         setSaving(true);
         try {
             const ret = await post("submit_question", {
                 id: question.id,
-                value,
+                value: JSON.stringify(val),
                 token: getToken(),
                 exam: examContext.exam,
             });
@@ -129,7 +150,7 @@ export default function Question({
                 if (!data.success) {
                     setFailText("Server responded but failed to save, please refresh and try again.");
                 }
-                setSavedValue(value);
+                setSavedValue(val);
                 setFailText("");
             } catch {
                 setFailText("Server returned invalid JSON. Please try again.");
@@ -139,6 +160,11 @@ export default function Question({
             setFailText("Unable to reach server, your network may have issues.");
         }
     };
+
+    const submit = () => submitValue(value, savedValue);
+
+    const debouncedSubmit = useCallback(debounce(submitValue, 3000), []);
+    useEffect(() => debouncedSubmit(value, savedValue), [value, savedValue]);
 
     return (
         <>
