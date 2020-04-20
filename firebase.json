@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "public": "student/public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/**",
+        "function": "exam-server"
+      }
+    ]
+
+  }
+}
