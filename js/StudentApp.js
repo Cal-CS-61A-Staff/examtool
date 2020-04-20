@@ -26,6 +26,8 @@ export default function StudentApp() {
 
     const [savedAnswers, setSavedAnswers] = useState(null);
 
+    const [deadline, setDeadline] = useState(null);
+
     const [decryptedGroups, setDecryptedGroups] = useState(null);
 
     useEffect(() => {
@@ -49,19 +51,20 @@ export default function StudentApp() {
 
     const handleReceiveExam = ({
         // eslint-disable-next-line no-shadow
-        exam, publicGroup, privateGroups, answers,
+        exam, publicGroup, privateGroups, answers, deadline,
     }) => {
         setSavedAnswers(answers);
         setSelectedExam(exam);
         setPublicGroup(publicGroup);
         setEncryptedGroups(privateGroups);
+        setDeadline(deadline);
     };
 
     return (
         <>
             <Navbar bg="dark" variant="dark" sticky="top">
                 <Navbar.Brand href="#">CS 61A Exam Runner</Navbar.Brand>
-                <Timer target={1587495294} />
+                {deadline && <Timer target={deadline} />}
             </Navbar>
             <Container>
                 <br />

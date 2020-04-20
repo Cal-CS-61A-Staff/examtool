@@ -10,8 +10,8 @@ COPY . ./
 # Install production dependencies.
 RUN apt-get --yes update && apt-get --yes upgrade
 RUN apt-get --yes install pandoc
-RUN apt-get --yes install texlive
-RUN apt-get --yes install texlive-latex-extra
+#RUN apt-get --yes install texlive
+#RUN apt-get --yes install texlive-latex-extra
 RUN pip install -r requirements.txt
 
 # Run the web service on container startup. Here we use the gunicorn

@@ -3,7 +3,7 @@ import sys
 from os import getenv
 
 from cryptography.fernet import Fernet
-from flask import jsonify
+from flask import jsonify, abort
 from google.cloud import firestore
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -11,11 +11,8 @@ from google.cloud.exceptions import NotFound
 
 from scramble import scramble
 
-# this should be private, but it's a dummy value right now
-KEY = b"U5VyveKIg1cyYzIBoQbkTKWrSsaC5NbnsSHvsw_2cPI="
-
 # this can be public
-CLIENT_ID = "568115963376-97j0amnm9fp5f7lfaq462gkkcqp1071m.apps.googleusercontent.com"
+CLIENT_ID = "713452892775-59gliacuhbfho8qvn4ctngtp3858fgf9.apps.googleusercontent.com"
 
 DEV_EMAIL = getenv("DEV_EMAIL", "exam-test@berkeley.edu")
 
@@ -74,6 +71,13 @@ def index(request):
             except NotFound:
                 answers = {}
 
+            ref = db.collection("roster").document(exam).collection("deadline").document(email)
+            try:
+                deadline = ref.get().to_dict()["deadline"]
+            except NotFound:
+                abort(401)
+                return
+
             exam_data = db.collection("exams").document(exam).get().to_dict()
             config = exam_data["config"]
             exam_data = scramble(
@@ -89,10 +93,11 @@ def index(request):
                     "success": True,
                     "exam": exam,
                     "publicGroup": exam_data["public"],
-                    "privateGroups": Fernet(KEY)
+                    "privateGroups": Fernet(exam_data["secret"])
                     .encrypt(json.dumps(exam_data["groups"]).encode("ascii"))
                     .decode("ascii"),
                     "answers": answers,
+                    "deadline": deadline,
                 }
             )
 
