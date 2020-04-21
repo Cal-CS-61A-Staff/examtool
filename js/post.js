@@ -1,5 +1,5 @@
 export default async function post(endpoint, data) {
-    return fetch(`/exam-server/${endpoint}`, {
+    return fetch(endpoint, {
         method: "POST",
         cache: "no-cache",
         headers: {

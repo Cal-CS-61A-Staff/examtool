@@ -12,6 +12,10 @@
         "function": "exam-admin"
       },
       {
+        "source": "/admin/",
+        "function": "exam-admin"
+      },
+      {
         "source": "/**",
         "function": "exam-server"
       }
