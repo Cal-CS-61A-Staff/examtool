@@ -1,12 +1,16 @@
 {
   "hosting": {
-    "public": "student/public",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/admin/**",
+        "function": "exam-admin"
+      },
       {
         "source": "/**",
         "function": "exam-server"

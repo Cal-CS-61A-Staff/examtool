@@ -6,15 +6,15 @@ from flask import Flask, request
 
 mode = getenv("MODE")
 
-if mode == "student":
-    sys.path.append(os.path.abspath("student"))
-    os.chdir("student")
-    from student.main import index
+if mode == "exam":
+    sys.path.append(os.path.abspath("exam"))
+    os.chdir("exam")
+    from exam.main import index
 
-if mode == "staff":
-    sys.path.append("staff")
-    os.chdir("staff")
-    from student.main import index
+if mode == "write":
+    sys.path.append("write")
+    os.chdir("write")
+    from exam.main import index
 
 
 app = Flask(__name__)
