@@ -1,5 +1,5 @@
 import json
-import sys
+import time
 from os import getenv
 
 from cryptography.fernet import Fernet
@@ -44,6 +44,14 @@ def get_email(request):
     return id_info["email"]
 
 
+def get_deadline(exam, email, db):
+    ref = db.collection("roster").document(exam).collection("deadline").document(email)
+    try:
+        return ref.get().to_dict()["deadline"]
+    except NotFound:
+        abort(401)
+
+
 def index(request):
     try:
         if getenv("ENV") == "dev":
@@ -71,12 +79,7 @@ def index(request):
             except NotFound:
                 answers = {}
 
-            ref = db.collection("roster").document(exam).collection("deadline").document(email)
-            try:
-                deadline = ref.get().to_dict()["deadline"]
-            except NotFound:
-                abort(401)
-                return
+            deadline = get_deadline(exam, email, db)
 
             exam_data = db.collection("exams").document(exam).get().to_dict()
             config = exam_data["config"]
@@ -88,14 +91,21 @@ def index(request):
                 options="scramble_options" in config,
             )
 
+            # 10 second grace period in case of network latency or something
+            if deadline < time.time() + 10:
+                abort(401)
+                return
+
             return jsonify(
                 {
                     "success": True,
                     "exam": exam,
                     "publicGroup": exam_data["public"],
-                    "privateGroups": Fernet(exam_data["secret"])
-                    .encrypt(json.dumps(exam_data["groups"]).encode("ascii"))
-                    .decode("ascii"),
+                    "privateGroups": (
+                        Fernet(exam_data["secret"])
+                        .encrypt(json.dumps(exam_data["groups"]).encode("ascii"))
+                        .decode("ascii")
+                    ),
                     "answers": answers,
                     "deadline": deadline,
                 }
@@ -106,6 +116,12 @@ def index(request):
             question_id = request.json["id"]
             value = request.json["value"]
             email = get_email(request)
+
+            deadline = get_deadline(exam, email, db)
+
+            if deadline < time.time():
+                abort(401)
+                return
 
             db.collection(exam).document(email).set({question_id: value}, merge=True)
 

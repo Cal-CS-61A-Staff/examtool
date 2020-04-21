@@ -30,6 +30,8 @@ export default function StudentApp() {
 
     const [decryptedGroups, setDecryptedGroups] = useState(null);
 
+    const [examEnded, setExamEnded] = useState(false);
+
     useEffect(() => {
         const go = async () => {
             setExamList(await (await post("list_exams")).json());
@@ -60,11 +62,13 @@ export default function StudentApp() {
         setDeadline(deadline);
     };
 
+    const handleEnd = () => setExamEnded(true);
+
     return (
         <>
             <Navbar bg="dark" variant="dark" sticky="top">
                 <Navbar.Brand href="#">CS 61A Exam Runner</Navbar.Brand>
-                {deadline && <Timer target={deadline} />}
+                {deadline && <Timer target={deadline} onEnd={handleEnd} />}
             </Navbar>
             <Container>
                 <br />
@@ -162,7 +166,7 @@ export default function StudentApp() {
                 )}
                 <br />
                 <ExamContext.Provider value={{ exam: selectedExam, savedAnswers }}>
-                    <Exam publicGroup={publicGroup} groups={decryptedGroups} />
+                    <Exam publicGroup={publicGroup} groups={decryptedGroups} ended={examEnded} />
                 </ExamContext.Provider>
             </Container>
         </>

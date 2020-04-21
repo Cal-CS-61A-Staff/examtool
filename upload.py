@@ -11,6 +11,7 @@ from google.cloud import firestore
 @click.option("--exam", prompt=True, default="sample_exam.json", type=click.File('r'))
 @click.option("--roster", prompt=True, default="sample_roster.csv", type=click.File('r'))
 def upload_exam(name, exam, roster):
+    exam = exam.read()
     roster = csv.reader(roster, delimiter=',')
 
     db = firestore.Client()

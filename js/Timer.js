@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import useInterval from "./useInterval";
 
-export default function Timer({ target }) {
+export default function Timer({ target, onEnd }) {
     const [visible, setVisible] = useState(false);
     const [hover, setHover] = useState(false);
     const [timeString, setTimeString] = useState("");
@@ -15,6 +15,11 @@ export default function Timer({ target }) {
         const minutes = (remaining - seconds) / 60;
 
         setTimeString(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+
+        // five second slack period because we're nice
+        if (target - time < -5) {
+            onEnd();
+        }
     };
 
     useInterval(updateTimeString, 1000);

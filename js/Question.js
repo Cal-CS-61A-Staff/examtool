@@ -3,6 +3,7 @@ import React, {
     useContext, useEffect, useLayoutEffect, useRef, useState,
 } from "react";
 import { Form, FormControl, InputGroup } from "react-bootstrap";
+import Anchor from "./Anchor";
 import { getToken } from "./auth";
 import debounce from "./debounce";
 import ExamContext from "./ExamContext";
@@ -176,6 +177,7 @@ export default function Question({
         <>
             <Form onSubmit={(e) => { e.preventDefault(); submit(); }}>
                 <Form.Label>
+                    <Anchor name={`${i}_${j}`} />
                     <h5 style={{ marginTop: 8, marginBottom: 0 }}>
                         Q
                         {i + 1}
