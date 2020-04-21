@@ -1,0 +1,4 @@
+# my deps
+google-cloud-firestore
+cryptography
+google-auth

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
     Col, Container, Form, Navbar, Row,
 } from "react-bootstrap";
-import { auth2 } from "gapi";
 import Exam from "./Exam";
 import ExamContext from "./ExamContext";
 import PasswordDecryptor from "./PasswordDecryptor";
@@ -12,9 +11,7 @@ import post from "./post";
 import Timer from "./Timer";
 
 export default function StudentApp() {
-    const [username, setUsername] = useState(
-        window.location.hostname === "localhost" ? "exam-test@berkeley.edu" : "",
-    );
+    const [username, setUsername] = useState("");
 
     const [examList, setExamList] = useState([]);
 
@@ -38,13 +35,6 @@ export default function StudentApp() {
         };
         go();
     }, []);
-
-    const logout = (e) => {
-        e.preventDefault();
-        setUsername("");
-        auth2.getAuthInstance().signOut();
-        window.location.reload();
-    };
 
     const handleExamSelect = (e) => {
         setSelectedExam(e.target.value);
@@ -79,24 +69,9 @@ export default function StudentApp() {
                 </Row>
                 <Row>
                     <Col>
-                        {!username && (
-                            <GoogleSignInButton
-                                onSuccess={(receivedUsername) => setUsername(receivedUsername)}
-                            />
-                        )}
-                        {username && (
-                            <>
-                                You have signed in as
-                                {" "}
-                                <b>{username}</b>
-                                .
-                                {" "}
-                                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                                <a href="#" onClick={logout}>Log out</a>
-                                {" "}
-                                if this is not the right account.
-                            </>
-                        )}
+                        <GoogleSignInButton
+                            onSuccess={setUsername}
+                        />
                     </Col>
                 </Row>
                 {(username && !encryptedGroups) && (

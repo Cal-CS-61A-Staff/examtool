@@ -1,7 +1,8 @@
 module.exports = {
     entry: {
-        student: "./js/studentIndex.js",
-        staff: "./js/staffIndex.js",
+        exam: "./js/studentIndex.js",
+        write: "./js/staffIndex.js",
+        admin: "./js/adminIndex.js",
     },
     watch: true,
     output: {

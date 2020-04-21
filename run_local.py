@@ -11,6 +11,11 @@ if mode == "exam":
     os.chdir("exam")
     from exam.main import index
 
+if mode == "admin":
+    sys.path.append(os.path.abspath("admin"))
+    os.chdir("admin")
+    from admin.main import index
+
 if mode == "write":
     sys.path.append("write")
     os.chdir("write")
