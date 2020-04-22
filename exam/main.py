@@ -124,6 +124,9 @@ def index(request):
                 return
 
             db.collection(exam).document(email).set({question_id: value}, merge=True)
+            db.collection(exam).document(email).collection("log").document().set(
+                {"timestamp": time.time(), question_id: value}
+            )
 
             return jsonify({"success": True})
     except:
