@@ -4,7 +4,7 @@ import os
 from flask import Flask, send_from_directory, request, jsonify, make_response
 
 from convert import convert_str
-from gen_latex import renderLaTeX
+from gen_latex import render_latex
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -21,7 +21,7 @@ def convert():
 @app.route("/render", methods=["POST"])
 def render():
     exam = json.loads(request.form["exam"])
-    with renderLaTeX(exam) as pdf:
+    with render_latex(exam) as pdf:
         response = make_response(pdf)
         response.headers["Content-Type"] = "application/pdf"
         response.headers["Content-Disposition"] = "inline; filename=exam.pdf"

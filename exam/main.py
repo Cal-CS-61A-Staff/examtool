@@ -82,13 +82,9 @@ def index(request):
             deadline = get_deadline(exam, email, db)
 
             exam_data = db.collection("exams").document(exam).get().to_dict()
-            config = exam_data["config"]
             exam_data = scramble(
                 email,
                 exam_data,
-                groups="scramble_groups" in config,
-                questions="scramble_questions" in config,
-                options="scramble_options" in config,
             )
 
             # 10 second grace period in case of network latency or something

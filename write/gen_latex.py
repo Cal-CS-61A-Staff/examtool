@@ -4,11 +4,16 @@ import shutil
 from contextlib import contextmanager
 
 
+def rel_open(path, *args, **kwargs):
+    root = os.path.dirname(os.path.abspath(__file__))
+    return open(os.path.join(root, path), *args, **kwargs)
+
+
 def generate(exam):
     out = []
     write = out.append
 
-    with open("tex/prefix.tex") as f:
+    with rel_open("tex/prefix.tex") as f:
         write(f.read())
     for group in ([exam["public"]] if exam["public"] else []) + exam["groups"]:
         if group["points"] is not None:
@@ -43,22 +48,26 @@ def generate(exam):
         write(r"\end{enumerate}")
         write(r"\clearpage")
 
-    with open("tex/suffix.tex") as f:
+    with rel_open("tex/suffix.tex") as f:
         write(f.read())
 
     return "\n".join(out)
 
 
 @contextmanager
-def renderLaTeX(exam):
+def render_latex(exam, subs=None):
     latex = generate(exam)
     latex = re.sub(r"\\includegraphics(\[.*\])?{(http.*/(.+))}", r"\\immediate\\write18{wget -N \2}\n\\includegraphics\1{\3}", latex)
+    if subs:
+        for k, v in subs.items():
+            latex = latex.replace(f"<{k.upper()}>", v)
     if not os.path.exists("temp"):
         os.mkdir("temp")
-    with open("temp/out.tex", "w+") as f:
+    with rel_open("temp/out.tex", "w+") as f:
         f.write(latex)
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
     os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
-    with open("temp/out.pdf", "rb") as f:
+    with rel_open("temp/out.pdf", "rb") as f:
         yield f.read()
     # shutil.rmtree("temp")

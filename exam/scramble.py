@@ -1,10 +1,10 @@
 import random
 
 
-def scramble(email, exam, groups=True, questions=True, options=True):
+def scramble(email, exam):
     random.seed(email)
     global_substitutions = select(exam["substitutions"])
-    if groups:
+    if "scramble_groups" in exam["config"]:
         random.shuffle(exam["groups"])
     for group in exam["groups"]:
         group_substitutions = select(group["substitutions"])
@@ -13,7 +13,7 @@ def scramble(email, exam, groups=True, questions=True, options=True):
             [global_substitutions, group_substitutions],
             ["name", "html", "tex", "text"],
         )
-        if questions:
+        if "scramble_questions" in exam["config"]:
             random.shuffle(group["questions"])
         for question in group["questions"]:
             question_substitutions = select(question["substitutions"])
@@ -22,7 +22,7 @@ def scramble(email, exam, groups=True, questions=True, options=True):
                 [question_substitutions, global_substitutions, group_substitutions],
                 ["html", "tex", "text"],
             )
-            if options and isinstance(question["options"], list):
+            if "scramble_options" in exam["config"] and isinstance(question["options"], list):
                 random.shuffle(question["options"])
                 for option in question["options"]:
                     substitute(
@@ -34,6 +34,8 @@ def scramble(email, exam, groups=True, questions=True, options=True):
                         ],
                         ["html", "tex", "text"],
                     )
+
+    exam.pop("config", None)
 
     return exam
 
