@@ -7,39 +7,42 @@
 		"text": "You can complete and submit these questions before the exam starts.\n",
 		"questions": [
 			{
-				"id": "ATKVZSIHGOGNJFSZRDBCZVUWCRGSQIHQ",
+				"id": "YOCETHMPGWZXROPYTZDKDCCVXGWIKUYY",
 				"type": "short_answer",
 				"html": "<p>What is your full name?</p>\n",
 				"tex": "What is your full name?\n",
 				"text": "What is your full name?",
 				"options": null,
+				"substitutions": {},
 				"points": null
 			},
 			{
-				"id": "HDXOLTMIHSIOXZSDCJMOIEEMYAYNFFHE",
+				"id": "CESYOKEGORZTIOSZMHJKIDJPTJNTWUEN",
 				"type": "short_code_answer",
 				"html": "<p>What is your student ID number?</p>\n",
 				"tex": "What is your student ID number?\n",
 				"text": "What is your student ID number?",
 				"options": null,
+				"substitutions": {},
 				"points": null
 			}
-		]
+		],
+		"substitutions": {}
 	},
 	"groups": [
 		{
-			"name": "Exam Question One",
+			"name": "Exam Name Question One",
 			"points": 6,
-			"html": "<p><em>This is some very important text</em>. This text is not so important.</p>\n",
-			"tex": "\\emph{This is some very important text}. This text is not so important.\n",
-			"text": "*This is some very important text*. This text is not so important.\n",
+			"html": "<p>This is your name. <em>This is some very important text</em>. This text is not so important.</p>\n",
+			"tex": "This is your name. \\emph{This is some very important text}. This text is\nnot so important.\n",
+			"text": "This is your name. *This is some very important text*. This text is not so important.\n",
 			"questions": [
 				{
-					"id": "KFZQBYQFARLSKWWILZQYQNNAZVAVQOYF",
+					"id": "DIMUNHSRMXFMGCVMLUFELEYJAIVUFLAX",
 					"type": "multiple_choice",
-					"html": "<p>These are some multiple choice questions. You must select exactly one.</p>\n",
-					"tex": "These are some multiple choice questions. You must select exactly one.\n",
-					"text": "These are some multiple choice questions. You must select exactly one.\n",
+					"html": "<p>Your name. These are some multiple choice questions. You must select exactly one.</p>\n",
+					"tex": "Your name. These are some multiple choice questions. You must select\nexactly one.\n",
+					"text": "Your name. These are some multiple choice questions. You must select exactly one.\n",
 					"options": [
 						{
 							"html": "<p>Options can be plain text.</p>\n",
@@ -52,23 +55,26 @@
 							"text": "Or $\\LaTeX$ math,"
 						},
 						{
-							"html": "<p>Or even <code>code</code>!</p>\n",
-							"tex": "Or even \\texttt{code}!\n",
-							"text": "Or even `code`!"
+							"html": "<p>Or your name can even be <code>code</code>!</p>\n",
+							"tex": "Or your name can even be \\texttt{code}!\n",
+							"text": "Or your name can even be `code`!"
 						}
 					],
+					"substitutions": {},
 					"points": 2
 				},
 				{
-					"id": "NROFLXXZODTETICTTVLTDIFKDTHBHOUG",
+					"id": "KUPJLQVDPICEAEEPOSLHVAVCLQUPBYSO",
 					"type": "short_answer",
 					"html": "<p>This is a short answer question.</p>\n",
 					"tex": "This is a short answer question.\n",
 					"text": "This is a short answer question.\n",
 					"options": null,
+					"substitutions": {},
 					"points": 4
 				}
-			]
+			],
+			"substitutions": {}
 		},
 		{
 			"name": "Another Exam Question",
@@ -78,11 +84,11 @@
 			"text": "\nThis is another block of questions.\n",
 			"questions": [
 				{
-					"id": "SBABDHRYNQDFKQHNUNCNGFXYNQLUHDQL",
+					"id": "AOWEPKUZDPUQHVXAUIOACXBYRFYOMRUQ",
 					"type": "select_all",
-					"html": "<p>Display math is also supported <span class=\"math display\">\\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]</span></p>\n",
-					"tex": "Display math is also supported \\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]\n",
-					"text": "\nDisplay math is also supported\n$$\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n$$\n",
+					"html": "<p><span class=\"math inline\">\\(\\LaTeX\\)</span> display math is also supported <span class=\"math display\">\\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]</span></p>\n",
+					"tex": "\\(\\LaTeX\\) display math is also supported \\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]\n",
+					"text": "\n$\\LaTeX$ display math is also supported\n$$\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n$$\n",
 					"options": [
 						{
 							"html": "<p>Select all</p>\n",
@@ -100,41 +106,52 @@
 							"text": "are also available"
 						}
 					],
+					"substitutions": {},
 					"points": 3
 				},
 				{
-					"id": "QFDFFRNSBCTZEVFPSLFWMIXRRAYOJLBC",
+					"id": "CKQGBCTXFMVZMNYUCOSIPETFIBUFIYBM",
 					"type": "long_code_answer",
 					"html": "<p>You can also include large code blocks in questions</p>\n<pre><code>m, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160</code></pre>\n<p>And allow code in answers too</p>\n",
 					"tex": "You can also include large code blocks in questions\n\n\\begin{verbatim}\nm, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160\n\\end{verbatim}\n\nAnd allow code in answers too\n",
 					"text": "You can also include large code blocks in questions\n```\nm, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160\n```\n\nAnd allow code in answers too",
 					"options": 10,
+					"substitutions": {},
 					"points": 7
 				},
 				{
-					"id": "TQFAKUATRBYBJYSVITUYHKSTXICLGOPL",
+					"id": "KUNVGVANZLZEHLDCEEUKSLZAAMDRFESM",
 					"type": "long_answer",
 					"html": "<p>You can omit point values for particular questions, if you want.</p>\n<p>Paragraph answers are allowed. You can even specify the number of lines displayed! This block is four lines long.</p>\n",
 					"tex": "You can omit point values for particular questions, if you want.\n\nParagraph answers are allowed. You can even specify the number of lines\ndisplayed! This block is four lines long.\n",
 					"text": "\nYou can omit point values for particular questions, if you want.\n\nParagraph answers are allowed. You can even specify the number of lines displayed! This block is four lines long.\n",
 					"options": 4,
+					"substitutions": {},
 					"points": null
 				},
 				{
-					"id": "TQKHWEHSDEIZEVRZAKHSTDRCTSHPIJYX",
+					"id": "XYNWEGDKSGWCTBFYIORMMITNQVOHBITY",
 					"type": "short_code_answer",
-					"html": "<p>Images and other markdown features should all be supported. For the most part, if it works on GitHub, it should work here.</p>\n<figure>\n<img src=\"https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png\" title=\"Logo Title Text 1\" />\n</figure>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Tables</th>\n<th style=\"text-align: center;\">Are</th>\n<th style=\"text-align: right;\">Cool</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>col 3 is</td>\n<td style=\"text-align: center;\">right-aligned</td>\n<td style=\"text-align: right;\">$1600</td>\n</tr>\n<tr class=\"even\">\n<td>col 2 is</td>\n<td style=\"text-align: center;\">centered</td>\n<td style=\"text-align: right;\">$12</td>\n</tr>\n<tr class=\"odd\">\n<td>zebra stripes</td>\n<td style=\"text-align: center;\">are neat</td>\n<td style=\"text-align: right;\">$1</td>\n</tr>\n</tbody>\n</table>\n",
-					"tex": "Images and other markdown features should all be supported. For the most\npart, if it works on GitHub, it should work here.\n\n\\begin{figure}\n\\centering\n\\includegraphics{https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png}\n\\caption{}\n\\end{figure}\n\n\\begin{longtable}[]{@{}lcr@{}}\n\\toprule\nTables & Are & Cool\\tabularnewline\n\\midrule\n\\endhead\ncol 3 is & right-aligned & \\$1600\\tabularnewline\ncol 2 is & centered & \\$12\\tabularnewline\nzebra stripes & are neat & \\$1\\tabularnewline\n\\bottomrule\n\\end{longtable}\n",
-					"text": "\nImages and other markdown features should all be supported. For the most part, if it works on GitHub, it should work here.\n\n\n![](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png \"Logo Title Text 1\")\n\n| Tables        | Are           | Cool  |\n| ------------- |:-------------:| -----:|\n| col 3 is      | right-aligned | $1600 |\n| col 2 is      | centered      |   $12 |\n| zebra stripes | are neat      |    $1 |\n",
+					"html": "<p>Images and other markdown features should all be supported. If it works on GitHub, it should work here.</p>\n<h2 id=\"stuff\">Stuff</h2>\n<p><img src=\"https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png\" title=\"Logo Title Text 1\" /></p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Tables</th>\n<th style=\"text-align: center;\">Are</th>\n<th style=\"text-align: right;\">Cool</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>col 3 is</td>\n<td style=\"text-align: center;\">right-aligned</td>\n<td style=\"text-align: right;\">$1600</td>\n</tr>\n<tr class=\"even\">\n<td>col 2 is</td>\n<td style=\"text-align: center;\">centered</td>\n<td style=\"text-align: right;\">$12</td>\n</tr>\n<tr class=\"odd\">\n<td>zebra stripes</td>\n<td style=\"text-align: center;\">are neat</td>\n<td style=\"text-align: right;\">$1</td>\n</tr>\n</tbody>\n</table>\n",
+					"tex": "Images and other markdown features should all be supported. If it works\non GitHub, it should work here.\n\n\\hypertarget{stuff}{%\n\\subsection{Stuff}\\label{stuff}}\n\n\\includegraphics{https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png}\n\n\\begin{longtable}[]{@{}lcr@{}}\n\\toprule\nTables & Are & Cool\\tabularnewline\n\\midrule\n\\endhead\ncol 3 is & right-aligned & \\$1600\\tabularnewline\ncol 2 is & centered & \\$12\\tabularnewline\nzebra stripes & are neat & \\$1\\tabularnewline\n\\bottomrule\n\\end{longtable}\n",
+					"text": "\nImages and other markdown features should all be supported. If it works on GitHub, it should work here.\n\n## Stuff\n\n![](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png \"Logo Title Text 1\")\n\n| Tables        | Are           | Cool  |\n| ------------- |:-------------:| -----:|\n| col 3 is      | right-aligned | $1600 |\n| col 2 is      | centered      |   $12 |\n| zebra stripes | are neat      |    $1 |\n",
 					"options": null,
+					"substitutions": {},
 					"points": null
 				}
-			]
+			],
+			"substitutions": {}
 		}
 	],
 	"config": [
 		"scramble_groups",
 		"scramble_questions",
 		"scramble_options"
-	]
+	],
+	"substitutions": {
+		"name": [
+			"identifier",
+			"demonym"
+		]
+	}
 }

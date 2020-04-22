@@ -9,7 +9,7 @@ from gen_latex import renderLaTeX
 app = Flask(__name__, static_folder="static", static_url_path="")
 
 
-@app.route("/exam-server/convert", methods=["POST"])
+@app.route("/convert", methods=["POST"])
 def convert():
     text = request.json["text"]
     try:
@@ -18,7 +18,7 @@ def convert():
         return jsonify({"success": False, "error": str(e)})
 
 
-@app.route("/exam-server/render", methods=["POST"])
+@app.route("/render", methods=["POST"])
 def render():
     exam = json.loads(request.form["exam"])
     with renderLaTeX(exam) as pdf:

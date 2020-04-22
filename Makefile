@@ -27,7 +27,7 @@ admin-dev:
 .PHONY: write-dev
 write-dev:
 	export MODE=write; \
-	export FLASK_APP=staff/app; \
+	export FLASK_APP=write/app; \
 	export GOOGLE_APPLICATION_CREDENTIALS=$(shell pwd)/creds.json; \
 	export ENV=dev; \
 	yarn run concurrently webpack "flask run"

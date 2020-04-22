@@ -21,7 +21,7 @@ class LineBuffer:
 
 
 def directive_type(line):
-    if not any(line.startswith(f"# {x} ") for x in ["BEGIN", "END", "INPUT", "CONFIG"]):
+    if not any(line.startswith(f"# {x} ") for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE"]):
         return None, None, None
     tokens = line.split(" ", 3)
     return tokens[1], tokens[2] if len(tokens) > 2 else "", tokens[3] if len(tokens) > 3 else ""
@@ -83,6 +83,7 @@ def parse_input_lines(lines):
 def consume_rest_of_question(buff):
     contents = []
     input_lines = []
+    substitutions = {}
     while True:
         line = buff.pop()
         mode, directive, rest = directive_type(line)
@@ -101,9 +102,12 @@ def consume_rest_of_question(buff):
                     "type": question_type,
                     **parse("\n".join(contents)),
                     "options": options,
+                    "substitutions": substitutions,
                 }
             else:
                 raise SyntaxError("Unexpected END in QUESTION")
+        elif mode == "DEFINE":
+            substitutions[directive] = rest.split(" ")
         else:
             raise SyntaxError("Unexpected directive in QUESTION")
 
@@ -112,6 +116,7 @@ def consume_rest_of_group(buff, end):
     group_contents = []
     questions = []
     started_question = False
+    substitutions = {}
     while True:
         line = buff.pop()
         mode, directive, rest = directive_type(line)
@@ -129,7 +134,9 @@ def consume_rest_of_group(buff, end):
             question["points"] = points
             questions.append(question)
         elif mode == "END" and directive == end:
-            return "\n".join(group_contents), questions
+            return "\n".join(group_contents), questions, substitutions
+        elif mode == "DEFINE":
+            substitutions[directive] = rest.split(" ")
         else:
             raise SyntaxError("Unexpected directive in GROUP")
 
@@ -139,6 +146,7 @@ def convert(text):
     groups = []
     public = None
     config = []
+    substitutions = {}
 
     try:
         while not buff.empty():
@@ -153,12 +161,13 @@ def convert(text):
                     raise SyntaxError("Unexpected CONFIG directive {}".format(directive))
             elif mode == "BEGIN" and directive in ["GROUP", "PUBLIC"]:
                 title, points = get_points(rest)
-                body, questions = consume_rest_of_group(buff, directive)
+                body, questions, group_substitutions = consume_rest_of_group(buff, directive)
                 group = {
                     "name": title,
                     "points": points,
                     **parse(body),
                     "questions": questions,
+                    "substitutions": group_substitutions,
                 }
                 if directive == "PUBLIC":
                     if public:
@@ -166,6 +175,8 @@ def convert(text):
                     public = group
                 else:
                     groups.append(group)
+            elif mode == "DEFINE":
+                substitutions[directive] = rest.split(" ")
             else:
                 raise SyntaxError("Unexpected directive")
     except SyntaxError as e:
@@ -175,6 +186,7 @@ def convert(text):
         "public": public,
         "groups": groups,
         "config": config,
+        "substitutions": substitutions,
     }
 
 
