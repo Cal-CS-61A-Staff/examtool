@@ -91,6 +91,16 @@ For short answer questions, the `content` should be left blank. For long answer 
 can optionally be an integer representing the number of lines provided in the input field before the user
 has to start scrolling. This also affects the height of the box in the generated PDF in a similar way.
 
+## Public Syntax
+If you want to have some questions that can be filled out before the exam starts, use a
+```
+# BEGIN PUBLIC
+...
+# END PUBLIC
+```
+block, just like a group block. This will create a question group that is visible before students start the
+exam. At most one such block can exist in the exam.
+
 ## Config Syntax
 At the beginning of the exam, before anything else, you can provide config statements, written as
 ```
