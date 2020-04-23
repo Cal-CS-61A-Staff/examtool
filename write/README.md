@@ -54,7 +54,7 @@ _must_ be in plain text, _not_ Markdown.
 Each group then can have some body text written in Markdown. After this body text comes a
 sequence of question blocks. Then a group is ended with
 ```
-END GROUP
+# END GROUP
 ```
 
 ## Question Syntax
@@ -66,7 +66,7 @@ Note that, unlike groups, questions do not have titles. Then you can provide som
 body text, written in Markdown. Then you must provide at least one `INPUT` statement. Then
 a question is ended with
 ```
-END QUESTION
+# END QUESTION
 ```
 
 ## Input Syntax
