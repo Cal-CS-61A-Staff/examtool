@@ -102,7 +102,7 @@ will derandomize all of these before grading.
 It is also possible to replace particular words or variables in an exam for each student, to prevent cheating.
 The syntax is
 ```
-DEFINE <target> <alt1> <alt2> ...
+# DEFINE <target> <alt1> <alt2> ...
 ```
 This will replace all instances of `target` with one of the alternatives, chosen randomly. This will be scoped to
 the block where it is made i.e. if it is written at the top-level, it will replace the `target` everywhere in the document,
