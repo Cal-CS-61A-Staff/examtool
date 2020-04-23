@@ -110,7 +110,7 @@ The valid choices of `option` are `SCRAMBLE_GROUPS`, `SCRAMBLE_QUESTIONS`, and `
 randomize the order of groups, questions, and multiple choice options respectively for each student. The tool
 will derandomize all of these before grading.
 
-## DEFINE Syntax
+## Define Syntax
 It is also possible to replace particular words or variables in an exam for each student, to prevent cheating.
 The syntax is
 ```
