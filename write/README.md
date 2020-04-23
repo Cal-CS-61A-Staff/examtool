@@ -34,6 +34,8 @@ This is another question, that's multiple-choice.
 # INPUT OPTION Option 1
 # INPUT OPTION Option 2
 
+# END QUESTION
+
 # END GROUP
 ```
 
