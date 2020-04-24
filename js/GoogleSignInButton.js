@@ -47,7 +47,7 @@ export default function GoogleSignInButton({ onSuccess }) {
 
     return (
         <>
-            First, sign into Google.
+            First, sign into Google using your CalNet account.
             <div
                 id="signInButton"
                 className="g-signin2"

@@ -15,11 +15,18 @@ def generate(exam):
 
     with rel_open("tex/prefix.tex") as f:
         write(f.read())
-    for group in ([exam["public"]] if exam["public"] else []) + exam["groups"]:
-        if group["points"] is not None:
-            write(fr"\q{{{group['points']}}}")
+    for i, group in enumerate(([exam["public"]] if exam["public"] else []) + exam["groups"]):
+        is_public = bool(i == 0 and exam["public"])
+        if is_public:
+            if group["points"] is not None:
+                write(rf"{{\bf\item ({group['points']} points)\quad}}")
+            else:
+                write(r"\item[]")
         else:
-            write(r"\item")
+            if group["points"] is not None:
+                write(fr"\q{{{group['points']}}}")
+            else:
+                write(r"\item")
         write(r"{ \bf " + group["name"] + "}")
         write("\n")
         write(group["tex"])
@@ -67,7 +74,7 @@ def render_latex(exam, subs=None):
         f.write(latex)
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
-    os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
+    # os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
     with rel_open("temp/out.pdf", "rb") as f:
         yield f.read()
     # shutil.rmtree("temp")

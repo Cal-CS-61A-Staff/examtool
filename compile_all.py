@@ -2,7 +2,9 @@ import csv
 import json
 import os
 from datetime import datetime
+from io import BytesIO
 
+import PyPDF2 as PyPDF2
 import click
 import pytz
 
@@ -16,7 +18,8 @@ from write.gen_latex import render_latex
     "--roster", prompt=True, default="sample_roster.csv", type=click.File("r")
 )
 @click.option("--out", prompt=True, default="out", type=click.Path())
-def compile_all(exam, roster, out):
+@click.option("--password", prompt=True, type=click.Path())
+def compile_all(exam, roster, out, password):
     exam_str = exam.read()
     roster = csv.reader(roster, delimiter=",")
 
@@ -36,13 +39,19 @@ def compile_all(exam, roster, out):
             exam, {"emailaddress": email.replace("_", r"\_"), "deadline": deadline_string}
         ) as pdf:
             os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+            pdf = PyPDF2.PdfFileReader(BytesIO(pdf))
+            out_pdf = PyPDF2.PdfFileWriter()
+            out_pdf.appendPagesFromReader(pdf)
+            out_pdf.encrypt(password)
+
             with open(
                 os.path.join(
                     out, "exam_" + email.replace("@", "_").replace(".", "_") + ".pdf"
                 ),
                 "wb",
             ) as f:
-                f.write(pdf)
+                out_pdf.write(f)
 
 
 if __name__ == "__main__":
