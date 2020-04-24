@@ -45,6 +45,7 @@ export default function StaffApp() {
         }
     };
 
+    // eslint-disable-next-line no-unused-vars
     const renderPDF = () => {
         const form = document.createElement("form");
         form.action = "/exam-server/render";
