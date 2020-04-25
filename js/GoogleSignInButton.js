@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { auth2, signin2 } from "gapi";
+import { auth2, signin2, load } from "gapi";
 
 export default function GoogleSignInButton({ onSuccess }) {
     const [username, setUsername] = useState(window.location.hostname === "localhost" ? "exam-test@berkeley.edu" : "");
@@ -16,17 +16,19 @@ export default function GoogleSignInButton({ onSuccess }) {
             onSuccess(username);
             return;
         }
-        signin2.render("signInButton",
-            {
-                width: 200,
-                longtitle: true,
-                onSuccess: (user) => {
-                    setUsername(user.getBasicProfile().getEmail());
-                    onSuccess(
-                        user.getBasicProfile().getEmail(),
-                    );
-                },
-            });
+        load("auth2", () => {
+            signin2.render("signInButton",
+                {
+                    width: 200,
+                    longtitle: true,
+                    onsuccess: (user) => {
+                        setUsername(user.getBasicProfile().getEmail());
+                        onSuccess(
+                            user.getBasicProfile().getEmail(),
+                        );
+                    },
+                });
+        });
     }, []);
 
     if (username) {
