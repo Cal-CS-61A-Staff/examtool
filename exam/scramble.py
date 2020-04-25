@@ -21,7 +21,7 @@ def scramble_group(group, substitutions, config, depth):
         [*substitutions, group_substitutions],
         ["name", "html", "tex", "text"],
     )
-    if 0 in config["scramble_groups"]:
+    if depth in config["scramble_groups"]:
         random.shuffle(group["elements"])
     for element in group["elements"]:
         if element["type"] == "group":
