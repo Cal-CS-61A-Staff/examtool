@@ -7,7 +7,14 @@ import Question from "./Question";
 import Sidebar from "./Sidebar";
 
 export default function Exam({ groups, publicGroup, ended }) {
-    useEffect(() => typeset(), [groups]);
+    useEffect(() => {
+        for (const link of document.getElementsByTagName("a")) {
+            if (link.getAttribute("href") && link.hostname !== window.location.hostname) {
+                link.target = "_blank";
+            }
+        }
+        typeset();
+    }, [groups]);
 
     const stickyStyle = {
         position: "sticky",
