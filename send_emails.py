@@ -55,7 +55,7 @@ def send_emails(roster, pdf_folder):
                 {
                     "content": pdf,
                     "type": "application/pdf",
-                    "filename": "Encrypted CS 61A Exam",
+                    "filename": "Encrypted CS 61A Exam.pdf",
                     "disposition": "attachment",
                 }
             ],
