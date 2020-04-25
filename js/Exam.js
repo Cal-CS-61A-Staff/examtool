@@ -20,8 +20,9 @@ export default function Exam({ groups, publicGroup, ended }) {
         <div className="exam">
             <Row>
                 <Col md={9} sm={12}>
-                    {!ended && publicGroup && <Group group={publicGroup} i={-1} />}
-                    {!ended && groups && groups.map((group, i) => <Group group={group} i={i} />)}
+                    {!ended && publicGroup && <Group group={publicGroup} number={0} />}
+                    {!ended && groups && groups.map((group, i) => (
+                        <Group group={group} number={i + 1} />))}
                     {groups && (
                         <Jumbotron>
                             {/* eslint-disable-next-line jsx-a11y/accessible-emoji */}
@@ -43,29 +44,33 @@ export default function Exam({ groups, publicGroup, ended }) {
     );
 }
 
-function Group({ group, i }) {
+function Group({ group, number, small }) {
+    // eslint-disable-next-line react/jsx-props-no-spreading,jsx-a11y/heading-has-content
+    const Header = (props) => (small ? <h4 {...props} /> : <h3 {...props} />);
     return (
         <>
+            <br />
             <div>
-                <Anchor name={i} />
-                <h3 style={{ marginBottom: 0 }}>
+                <Anchor name={number} />
+                <Header style={{ marginBottom: 0 }}>
                     <b>
                         Q
-                        {i + 1}
+                        {number}
                     </b>
                     {" "}
                     {group.name}
-                </h3>
+                </Header>
                 <Points
                     points={group.points}
                 />
                 {/* eslint-disable-next-line react/no-danger */}
                 <div dangerouslySetInnerHTML={{ __html: group.html }} />
-                { group.questions.map((question, j) => (
-                    <Question question={question} i={i} j={j} />))}
+                { group.elements.map((element, i) => (
+                    element.type === "group"
+                        ? <Group group={element} number={`${number}.${i + 1}`} small />
+                        : <Question question={element} number={`${number}.${i + 1}`} />))}
             </div>
-            <hr />
-            <br />
+            {!small && <hr />}
         </>
     );
 }

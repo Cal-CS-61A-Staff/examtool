@@ -27,10 +27,10 @@ admin-dev:
 .PHONY: write-dev
 write-dev:
 	export MODE=write; \
-	export FLASK_APP=write/app; \
+	export FLASK_APP=run_local; \
 	export GOOGLE_APPLICATION_CREDENTIALS=$(shell pwd)/creds.json; \
 	export ENV=dev; \
-	yarn run concurrently webpack "flask run"
+	yarn run concurrently webpack "python run_local.py"
 
 .PHONY: write-deploy
 write-deploy:

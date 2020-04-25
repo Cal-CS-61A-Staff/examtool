@@ -114,27 +114,39 @@ def consume_rest_of_question(buff):
 
 def consume_rest_of_group(buff, end):
     group_contents = []
-    questions = []
-    started_question = False
+    elements = []
+    started_elements = False
     substitutions = {}
     while True:
         line = buff.pop()
         mode, directive, rest = directive_type(line)
         if mode is None:
-            if started_question and line.strip():
+            if started_elements and line.strip():
                 raise SyntaxError("Unexpected text in GROUP after QUESTIONs started")
-            elif not started_question:
+            elif not started_elements:
                 group_contents.append(line)
         elif mode == "BEGIN" and directive == "QUESTION":
-            started_question = True
+            started_elements = True
             title, points = get_points(rest)
             if title:
                 raise SyntaxError("Unexpected arguments passed in BEGIN QUESTION directive")
             question = consume_rest_of_question(buff)
             question["points"] = points
-            questions.append(question)
+            elements.append(question)
+        elif mode == "BEGIN" and directive == "GROUP":
+            started_elements = True
+            title, points = get_points(rest)
+            group = consume_rest_of_group(buff, "GROUP")
+            group["name"] = title
+            group["points"] = points
+            elements.append(group)
         elif mode == "END" and directive == end:
-            return "\n".join(group_contents), questions, substitutions
+            return {
+                "type": "group",
+                **parse("\n".join(group_contents)),
+                "elements": elements,
+                "substitutions": substitutions
+            }
         elif mode == "DEFINE":
             substitutions[directive] = rest.split(" ")
         else:
@@ -145,7 +157,7 @@ def convert(text):
     buff = LineBuffer(text)
     groups = []
     public = None
-    config = []
+    config = {}
     substitutions = {}
 
     try:
@@ -156,19 +168,14 @@ def convert(text):
             mode, directive, rest = directive_type(line)
             if mode == "CONFIG":
                 if directive in ["SCRAMBLE_GROUPS", "SCRAMBLE_QUESTIONS", "SCRAMBLE_OPTIONS"]:
-                    config.append(directive.lower())
+                    config[directive.lower()] = [int(x) for x in rest.split(" ") if x]
                 else:
                     raise SyntaxError("Unexpected CONFIG directive {}".format(directive))
             elif mode == "BEGIN" and directive in ["GROUP", "PUBLIC"]:
                 title, points = get_points(rest)
-                body, questions, group_substitutions = consume_rest_of_group(buff, directive)
-                group = {
-                    "name": title,
-                    "points": points,
-                    **parse(body),
-                    "questions": questions,
-                    "substitutions": group_substitutions,
-                }
+                group = consume_rest_of_group(buff, directive)
+                group["name"] = title
+                group["points"] = points
                 if directive == "PUBLIC":
                     if public:
                         raise SyntaxError("Only one PUBLIC block is allowed")

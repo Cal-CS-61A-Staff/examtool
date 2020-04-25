@@ -6,13 +6,13 @@ export default function Sidebar({ groups }) {
         <Nav defaultActiveKey="/home" className="flex-column">
             {groups.map((group, i) => (
                 <>
-                    <Nav.Link href={`#${i}`}>
+                    <Nav.Link href={`#${i + 1}`}>
                         {i + 1}
                         {". "}
                         {group.name}
                     </Nav.Link>
-                    {group.questions.map((question, j) => (
-                        <Nav.Link style={{ paddingLeft: 20 }} href={`#${i}_${j}`}>
+                    {group.elements.map((question, j) => (
+                        <Nav.Link style={{ paddingLeft: 20 }} href={`#${i + 1}.${j + 1}`}>
                             Q
                             {i + 1}
                             .
