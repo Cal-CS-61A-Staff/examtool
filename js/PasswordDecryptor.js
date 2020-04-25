@@ -13,7 +13,7 @@ export default function PasswordDecryptor({ encryptedExam, onDecrypt }) {
 
     const decrypt = () => {
         try {
-            const secret = new Secret(password);
+            const secret = new Secret(password.trim());
             const token = new Token({
                 secret, token: encryptedExam, ttl: 0,
             });
