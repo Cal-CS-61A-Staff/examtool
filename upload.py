@@ -4,20 +4,28 @@ import json
 import click
 from cryptography.fernet import Fernet
 from google.cloud import firestore
+from google.cloud.exceptions import NotFound
 
 
 @click.command()
 @click.option("--name", prompt=True, default="cs61a-test-final")
 @click.option("--exam", prompt=True, default="sample_exam.json", type=click.File('r'))
 @click.option("--roster", prompt=True, default="sample_roster.csv", type=click.File('r'))
-def upload_exam(name, exam, roster):
+@click.option("--default-deadline", prompt=True, default=0, type=int)
+def upload_exam(name, exam, roster, default_deadline):
     exam = exam.read()
     roster = csv.reader(roster, delimiter=',')
 
     db = firestore.Client()
     ref = db.collection("exams").document(name)
     exam = json.loads(exam)
-    exam["secret"] = Fernet.generate_key()
+
+    exam["default_deadline"] = default_deadline
+
+    try:
+        exam["secret"] = ref.get().to_dict()["secret"]
+    except NotFound:
+        exam["secret"] = Fernet.generate_key()
     ref.set(exam)
 
     ref = db.collection("roster").document(name).collection("deadline")

@@ -44,11 +44,31 @@ def get_email(request):
     return id_info["email"]
 
 
+def get_exam_dict(exam, db):
+    return db.collection("exams").document(exam).get().to_dict()
+
+
 def get_deadline(exam, email, db):
     ref = db.collection("roster").document(exam).collection("deadline").document(email)
     try:
-        return ref.get().to_dict()["deadline"]
+        data = ref.get().to_dict()
+        if data:
+            return data["deadline"]
     except NotFound:
+        pass
+
+    if not email.endswith("@berkeley.edu"):
+        abort(401)
+    exam_data = get_exam_dict(exam, db)
+    if exam_data.get("default_deadline"):
+        # log unexpected access
+        ref = db.collection("roster").document(exam).collection("unexpected_access_log").document()
+        ref.set({
+            "timestamp": time.time(),
+            "email": email,
+        })
+        return exam_data["default_deadline"]
+    else:
         abort(401)
 
 
@@ -81,7 +101,7 @@ def index(request):
 
             deadline = get_deadline(exam, email, db)
 
-            exam_data = db.collection("exams").document(exam).get().to_dict()
+            exam_data = get_exam_dict(exam, db)
             exam_data = scramble(
                 email,
                 exam_data,
