@@ -13,7 +13,7 @@ import Points from "./Points";
 import post from "./post";
 
 export default function Question({
-    question, i, j,
+    question, number,
 }) {
     const examContext = useContext(ExamContext);
 
@@ -177,12 +177,10 @@ export default function Question({
         <>
             <Form onSubmit={(e) => { e.preventDefault(); submit(); }}>
                 <Form.Label>
-                    <Anchor name={`${i}_${j}`} />
+                    <Anchor name={number} />
                     <h5 style={{ marginTop: 8, marginBottom: 0 }}>
                         Q
-                        {i + 1}
-                        .
-                        {j + 1}
+                        {number}
                     </h5>
                     {" "}
                     <Points

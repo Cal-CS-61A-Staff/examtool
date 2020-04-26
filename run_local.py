@@ -17,9 +17,10 @@ if mode == "admin":
     from admin.main import index
 
 if mode == "write":
-    sys.path.append("write")
+    sys.path.append(os.path.abspath("write"))
     os.chdir("write")
-    from exam.main import index
+    from write.app import app
+    app.run()
 
 
 app = Flask(__name__)

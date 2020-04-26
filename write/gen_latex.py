@@ -13,10 +13,7 @@ def generate(exam):
     out = []
     write = out.append
 
-    with rel_open("tex/prefix.tex") as f:
-        write(f.read())
-    for i, group in enumerate(([exam["public"]] if exam["public"] else []) + exam["groups"]):
-        is_public = bool(i == 0 and exam["public"])
+    def write_group(group, is_public):
         if is_public:
             if group["points"] is not None:
                 write(rf"{{\bf\item ({group['points']} points)\quad}}")
@@ -31,29 +28,41 @@ def generate(exam):
         write("\n")
         write(group["tex"])
         write(r"\begin{enumerate}")
-        for question in group["questions"]:
-            write(r"\filbreak")
-            if question["points"] is not None:
-                write(fr"\subq{{{question['points']}}}")
+        for element in group["elements"]:
+            if element["type"] == "group":
+                write_group(element, False)
             else:
-                write(r"{\bf \item \, \hspace{-1em} \ }")
-            write(question["tex"])
-            if question["type"] in ["short_answer", "short_code_answer"]:
-                write(r"\framebox[0.8\textwidth][c]{\parbox[c][30px]{0.5\textwidth}{}}")
-            if question["type"] in ["long_answer", "long_code_answer"]:
-                write(rf"\framebox[0.8\textwidth][c]{{\parbox[c][{30*(question['options'])}px]{{0.5\textwidth}}{{}}}}")
-            if question["type"] in ["select_all"]:
-                write(r"\begin{options}")
-                for option in question["options"]:
-                    write(r"\option " + option["tex"])
-                write(r"\end{options}")
-            if question["type"] in ["multiple_choice"]:
-                write(r"\begin{choices}")
-                for option in question["options"]:
-                    write(r"\choice " + option["tex"])
-                write(r"\end{choices}")
+                write_question(element)
         write(r"\end{enumerate}")
         write(r"\clearpage")
+
+    def write_question(question):
+        write(r"\filbreak")
+        if question["points"] is not None:
+            write(fr"\subq{{{question['points']}}}")
+        else:
+            write(r"{\bf \item \, \hspace{-1em} \ }")
+        write(question["tex"])
+        if question["type"] in ["short_answer", "short_code_answer"]:
+            write(r"\framebox[0.8\textwidth][c]{\parbox[c][30px]{0.5\textwidth}{}}")
+        if question["type"] in ["long_answer", "long_code_answer"]:
+            write(rf"\framebox[0.8\textwidth][c]{{\parbox[c][{30 * (question['options'])}px]{{0.5\textwidth}}{{}}}}")
+        if question["type"] in ["select_all"]:
+            write(r"\begin{options}")
+            for option in question["options"]:
+                write(r"\option " + option["tex"])
+            write(r"\end{options}")
+        if question["type"] in ["multiple_choice"]:
+            write(r"\begin{choices}")
+            for option in question["options"]:
+                write(r"\choice " + option["tex"])
+            write(r"\end{choices}")
+
+    with rel_open("tex/prefix.tex") as f:
+        write(f.read())
+    for i, group in enumerate(([exam["public"]] if exam["public"] else []) + exam["groups"]):
+        is_public = bool(i == 0 and exam["public"])
+        write_group(group, is_public)
 
     with rel_open("tex/suffix.tex") as f:
         write(f.read())

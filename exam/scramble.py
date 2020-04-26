@@ -4,40 +4,50 @@ import random
 def scramble(email, exam):
     random.seed(email)
     global_substitutions = select(exam["substitutions"])
-    if "scramble_groups" in exam["config"]:
+    exam["config"]["scramble_groups"] = exam["config"].get("scramble_groups", [-1]) or range(100)
+    if 0 in exam["config"]["scramble_groups"]:
         random.shuffle(exam["groups"])
     for group in exam["groups"]:
-        group_substitutions = select(group["substitutions"])
-        substitute(
-            group,
-            [global_substitutions, group_substitutions],
-            ["name", "html", "tex", "text"],
-        )
-        if "scramble_questions" in exam["config"]:
-            random.shuffle(group["questions"])
-        for question in group["questions"]:
-            question_substitutions = select(question["substitutions"])
-            substitute(
-                question,
-                [question_substitutions, global_substitutions, group_substitutions],
-                ["html", "tex", "text"],
-            )
-            if "scramble_options" in exam["config"] and isinstance(question["options"], list):
-                random.shuffle(question["options"])
-                for option in question["options"]:
-                    substitute(
-                        option,
-                        [
-                            global_substitutions,
-                            group_substitutions,
-                            question_substitutions,
-                        ],
-                        ["html", "tex", "text"],
-                    )
-
+        scramble_group(group, [global_substitutions], exam["config"], 1)
     exam.pop("config", None)
 
     return exam
+
+
+def scramble_group(group, substitutions, config, depth):
+    group_substitutions = select(group["substitutions"])
+    substitute(
+        group,
+        [*substitutions, group_substitutions],
+        ["name", "html", "tex", "text"],
+    )
+    if depth in config["scramble_groups"]:
+        random.shuffle(group["elements"])
+    for element in group["elements"]:
+        if element["type"] == "group":
+            scramble_group(element, [*substitutions, group_substitutions], config, depth + 1)
+        else:
+            scramble_question(element, [*substitutions, group_substitutions], config)
+
+
+def scramble_question(question, substitutions, config):
+    question_substitutions = select(question["substitutions"])
+    substitute(
+        question,
+        [question_substitutions, *substitutions],
+        ["html", "tex", "text"],
+    )
+    if "scramble_options" in config and isinstance(question["options"], list):
+        random.shuffle(question["options"])
+        for option in question["options"]:
+            substitute(
+                option,
+                [
+                    *substitutions,
+                    question_substitutions,
+                ],
+                ["html", "tex", "text"],
+            )
 
 
 def select(substitutions):

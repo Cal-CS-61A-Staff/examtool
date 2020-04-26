@@ -52,7 +52,7 @@ creates a group of questions called `Gobears` worth `4` points. Note that a grou
 _must_ be in plain text, _not_ Markdown.
 
 Each group then can have some body text written in Markdown. After this body text comes a
-sequence of question blocks. Then a group is ended with
+sequence of element blocks. Element blocks are either nested group blocks or question blocks. Then a group is ended with
 ```
 # END GROUP
 ```
@@ -106,9 +106,15 @@ At the beginning of the exam, before anything else, you can provide config state
 ```
 # CONFIG <option>
 ```
-The valid choices of `option` are `SCRAMBLE_GROUPS`, `SCRAMBLE_QUESTIONS`, and `SCRAMBLE_OPTIONS`. These will
-randomize the order of groups, questions, and multiple choice options respectively for each student. The tool
+The valid choices of `option` are `SCRAMBLE_GROUPS` and `SCRAMBLE_OPTIONS`. These will
+randomize the order of groups and questions or multiple choice options respectively for each student. The tool
 will derandomize all of these before grading.
+
+To randomize just groups at a particular depth, write 
+```
+# CONFIG SCRAMBLE_GROUPS <depth> <depth> ...
+```
+to specify the scrambled depths, which are zero-indexed. Questions are one level lower than their parent group.
 
 ## Define Syntax
 It is also possible to replace particular words or variables in an exam for each student, to prevent cheating.

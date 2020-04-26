@@ -1,5 +1,4 @@
-# CONFIG SCRAMBLE_GROUPS
-# CONFIG SCRAMBLE_QUESTIONS
+# CONFIG SCRAMBLE_GROUPS 1
 # CONFIG SCRAMBLE_OPTIONS
 
 # BEGIN PUBLIC Preliminaries
@@ -19,7 +18,6 @@ What is your student ID number?
 
 # BEGIN GROUP Exam Question One [6]
 *This is some very important text*. This text is not so important.
-
 # BEGIN QUESTION [2]
 These are some multiple choice questions. You must select exactly one.
 
@@ -42,6 +40,9 @@ This is a short answer question.
 
 This is another block of questions.
 
+# BEGIN GROUP A subgroup [2]
+There can be subgroups of questions.
+
 # BEGIN QUESTION [3]
 
 $\LaTeX$ display math is also supported
@@ -54,6 +55,8 @@ $$
 # INPUT SELECT are also available
 
 # END QUESTION
+
+# END GROUP
 
 # BEGIN QUESTION [7]
 You can also include large code blocks in questions
