@@ -22,8 +22,8 @@ def scramble_group(group, substitutions, config, depth):
         ["name", "html", "tex", "text"],
     )
     if depth in config["scramble_groups"]:
-        random.shuffle(group["elements"])
-    for element in group["elements"]:
+        random.shuffle(get_elements(group))
+    for element in get_elements(group):
         if element.get("type") == "group":
             scramble_group(element, [*substitutions, group_substitutions], config, depth + 1)
         else:
@@ -48,6 +48,10 @@ def scramble_question(question, substitutions, config):
                 ],
                 ["html", "tex", "text"],
             )
+
+
+def get_elements(group):
+    return group.get("elements") or group.get("questions")
 
 
 def select(substitutions):
