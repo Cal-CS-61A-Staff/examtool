@@ -104,6 +104,7 @@ def index(request):
                     ),
                     "answers": answers,
                     "deadline": deadline,
+                    "timestamp": time.time(),
                 }
             )
 

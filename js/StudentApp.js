@@ -43,13 +43,13 @@ export default function StudentApp() {
 
     const handleReceiveExam = ({
         // eslint-disable-next-line no-shadow
-        exam, publicGroup, privateGroups, answers, deadline,
+        exam, publicGroup, privateGroups, answers, deadline, timestamp,
     }) => {
         setSavedAnswers(answers);
         setSelectedExam(exam);
         setPublicGroup(publicGroup);
         setEncryptedGroups(privateGroups);
-        setDeadline(deadline);
+        setDeadline(deadline - Math.round(timestamp) + Math.round(new Date().getTime() / 1000) - 2);
     };
 
     const handleEnd = () => setExamEnded(true);
