@@ -5,7 +5,7 @@ import click
 from google.cloud import firestore
 from fpdf import FPDF
 
-from old_scramble import scramble
+from scramble import scramble
 
 
 @click.command()
@@ -25,7 +25,6 @@ def download_all(name, exam, out, name_question, sid_question):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Courier", size=16)
-    pdf.rect(100, 100, 100, 100, "DF")
     pdf.multi_cell(200, 20, txt=name, align="L")
 
     pdf.set_font("Courier", size=9)
@@ -36,7 +35,7 @@ def download_all(name, exam, out, name_question, sid_question):
             pdf.multi_cell(200, 5, txt=line, align="L")
     pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
-    q_order = [question.id for question in extract_questions(json.loads(exam))]
+    q_order = [question["id"] for question in extract_questions(json.loads(exam))]
 
     db = firestore.Client()
     for i, submission in enumerate(db.collection(name).stream()):
@@ -46,7 +45,6 @@ def download_all(name, exam, out, name_question, sid_question):
         pdf = FPDF()
         pdf.add_page()
 
-        pdf.rect(100, 100, 100, 100, "DF")
         pdf.set_font("Courier", size=16)
         pdf.multi_cell(200, 20, txt=name, align="L")
         pdf.multi_cell(200, 20, txt=response.get(name_question, "NO NAME"), align="L")
@@ -54,7 +52,7 @@ def download_all(name, exam, out, name_question, sid_question):
 
         pdf.set_font("Courier", size=9)
 
-        q_lookup = {question.id: question for question in extract_questions(scramble(email, json.loads(exam)))}
+        q_lookup = {question["id"]: question for question in extract_questions(scramble(email, json.loads(exam)))}
 
         for question_id in q_order:
             question = q_lookup[question_id]
@@ -67,7 +65,7 @@ def download_all(name, exam, out, name_question, sid_question):
             for line in response.get(question_id, "").split("\n"):
                 pdf.multi_cell(200, 5, txt=line, align="L")
 
-        pdf.output(os.path.join(out, "{}.pdf".format(i)))
+        pdf.output(os.path.join(out, "{}.pdf".format(email)))
 
 
 def extract_questions(exam):
