@@ -21,11 +21,13 @@ def upload_exam(name, exam, roster, default_deadline):
     exam = json.loads(exam)
 
     exam["default_deadline"] = default_deadline
+    exam["secret"] = Fernet.generate_key()
 
     try:
         exam["secret"] = ref.get().to_dict()["secret"]
-    except NotFound:
-        exam["secret"] = Fernet.generate_key()
+    except (NotFound, TypeError):
+        pass
+
     ref.set(exam)
 
     ref = db.collection("roster").document(name).collection("deadline")
