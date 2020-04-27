@@ -21,7 +21,10 @@ def send_emails(roster, pdf_folder):
     if input("Sending email to {} people - confirm? (y/N) ".format(len(roster))).lower() != "y":
         exit(1)
 
-    for email, _ in roster:
+    for email, deadline in roster:
+        if not deadline:
+            continue
+
         body = (
             "Hello!\n\n"
             "You have an upcoming exam taking place on exam.cs61a.org. "

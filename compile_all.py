@@ -28,6 +28,8 @@ def compile_all(exam, roster, out, password):
 
     next(roster)  # ditch headers
     for email, deadline in roster:
+        if not deadline:
+            continue
         exam = json.loads(exam_str)
         scramble(email, exam)
         deadline_utc = datetime.utcfromtimestamp(int(deadline))
