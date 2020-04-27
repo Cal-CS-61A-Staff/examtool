@@ -81,9 +81,11 @@ def render_latex(exam, subs=None):
         os.mkdir("temp")
     with rel_open("temp/out.tex", "w+") as f:
         f.write(latex)
+    old = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
     # os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
     with rel_open("temp/out.pdf", "rb") as f:
+        os.chdir(old)
         yield f.read()
     # shutil.rmtree("temp")

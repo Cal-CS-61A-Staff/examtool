@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from io import BytesIO
 
-import PyPDF2 as PyPDF2
+from pikepdf import Pdf, Encryption
 import click
 import pytz
 
@@ -28,7 +28,7 @@ def compile_all(exam, roster, out, password):
 
     next(roster)  # ditch headers
     for email, deadline in roster:
-        if not deadline:
+        if not int(deadline):
             continue
         exam = json.loads(exam_str)
         scramble(email, exam)
@@ -37,23 +37,21 @@ def compile_all(exam, roster, out, password):
             pytz.timezone("America/Los_Angeles")
         )
         deadline_string = deadline_pst.strftime("%I:%M%p")
+
         with render_latex(
-            exam, {"emailaddress": email.replace("_", r"\_"), "deadline": deadline_string}
+            exam,
+            {"emailaddress": email.replace("_", r"\_"), "deadline": deadline_string},
         ) as pdf:
             os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-            pdf = PyPDF2.PdfFileReader(BytesIO(pdf))
-            out_pdf = PyPDF2.PdfFileWriter()
-            out_pdf.appendPagesFromReader(pdf)
-            out_pdf.encrypt(password)
-
-            with open(
+            pdf = Pdf.open(BytesIO(pdf))
+            pdf.save(
                 os.path.join(
                     out, "exam_" + email.replace("@", "_").replace(".", "_") + ".pdf"
                 ),
-                "wb",
-            ) as f:
-                out_pdf.write(f)
+                encryption=Encryption(owner=password, user=password),
+            )
+            pdf.close()
 
 
 if __name__ == "__main__":

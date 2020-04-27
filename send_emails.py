@@ -18,11 +18,11 @@ def send_emails(roster, pdf_folder):
 
     roster = list(roster)
 
-    if input("Sending email to {} people - confirm? (y/N) ".format(len(roster))).lower() != "y":
+    if input("Sending email to {} people - confirm? (y/N) ".format(len([x for x in roster if int(x[1])]))).lower() != "y":
         exit(1)
 
     for email, deadline in roster:
-        if not deadline:
+        if not int(deadline):
             continue
 
         body = (
@@ -31,11 +31,8 @@ def send_emails(roster, pdf_folder):
             "You should complete your exam on that website.\n\n"
             "However, if you encounter technical difficulties and are unable to do so, "
             "we have attached an encrypted PDF containing the same exam. "
-            "You can then complete your exam on the Google Form provided to you by "
-            "course staff. "
-            "Your submissions on exam.cs61a.org will be merged with your Google Form "
-            "responses, so you can switch from exam.cs61a.org to the Google Form "
-            "halfway through the exam if you want, without having to resubmit answers. "
+            "You can then email your exam solutions to course staff before the deadline "
+            "rather than submitting using exam.cs61a.org. "
             "To unlock the PDF, its password will be revealed on Piazza when the exam starts.\n\n"
             "Good luck, and remember to have fun!"
         )
