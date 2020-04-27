@@ -171,7 +171,11 @@ export default function Question({
     const submit = () => submitValue(value, savedValue);
 
     const debouncedSubmit = useCallback(debounce(submitValue, 3000), []);
-    useEffect(() => debouncedSubmit(value, savedValue), [value, savedValue]);
+    useEffect(() => {
+        debouncedSubmit(value, savedValue);
+        // normally cancelled on next rerender, but fires on unmount
+        return () => debouncedSubmit(value, savedValue);
+    }, [value, savedValue]);
 
     return (
         <>

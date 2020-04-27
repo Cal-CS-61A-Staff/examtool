@@ -16,8 +16,7 @@ export default function Timer({ target, onEnd }) {
 
         setTimeString(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
 
-        // five second slack period because we're nice
-        if (target - time < -5) {
+        if (target - time < 0) {
             onEnd();
         }
     };
