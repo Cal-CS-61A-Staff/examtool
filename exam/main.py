@@ -134,6 +134,10 @@ def index(request):
             value = request.json["value"]
             email = get_email(request)
 
+            db.collection(exam).document(email).collection("log").document().set(
+                {"timestamp": time.time(), question_id: value}
+            )
+
             deadline = get_deadline(exam, email, db)
 
             if deadline + 10 < time.time():
@@ -141,10 +145,6 @@ def index(request):
                 return
 
             db.collection(exam).document(email).set({question_id: value}, merge=True)
-            db.collection(exam).document(email).collection("log").document().set(
-                {"timestamp": time.time(), question_id: value}
-            )
-
             return jsonify({"success": True})
     except:
         return jsonify({"success": False})
