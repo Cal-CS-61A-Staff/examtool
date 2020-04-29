@@ -156,9 +156,10 @@ export default function Question({
                 const data = await ret.json();
                 if (!data.success) {
                     setFailText("Server responded but failed to save, please refresh and try again.");
+                } else {
+                    setSavedValue(val);
+                    setFailText("");
                 }
-                setSavedValue(val);
-                setFailText("");
             } catch {
                 setFailText("Server returned invalid JSON. Please try again.");
             }
