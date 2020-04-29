@@ -151,6 +151,7 @@ export default function Question({
             setSaving(false);
             if (!ret.ok) {
                 setFailText("Server failed to respond, please try again.");
+                return;
             }
             try {
                 const data = await ret.json();
