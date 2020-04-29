@@ -10,6 +10,8 @@ def check_dupes(targets):
     files = defaultdict(list)
     for target in targets:
         for file in os.listdir(target):
+            if "@" not in file:
+                continue
             files[file].append(target)
     for file, exams in files.items():
         if len(exams) > 1:

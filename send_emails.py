@@ -49,13 +49,13 @@ def send_emails(roster, pdf_folder):
             "personalizations": [
                 {"to": [{"email": email}], "substitutions": {}}
             ],
-            "subject": "CS 61A Final Exam PDF",
+            "subject": "CS 61A Final Exam PDF (Wednesday)",
             "content": [{"type": "text/plain", "value": body}],
             "attachments": [
                 {
                     "content": pdf,
                     "type": "application/pdf",
-                    "filename": "Encrypted CS 61A Exam.pdf",
+                    "filename": "Encrypted CS 61A Wednesday Exam.pdf",
                     "disposition": "attachment",
                 }
             ],
