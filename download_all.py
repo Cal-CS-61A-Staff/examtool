@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 
@@ -5,7 +6,7 @@ import click
 from google.cloud import firestore
 from fpdf import FPDF
 
-from scramble import scramble
+from exam.scramble import scramble
 
 
 @click.command()
@@ -37,6 +38,8 @@ def download_all(name, exam, out, name_question, sid_question):
 
     q_order = [question["id"] for question in extract_questions(json.loads(exam))]
 
+    total = [[question["text"] for question in extract_questions(json.loads(exam))]]
+
     db = firestore.Client()
     for i, submission in enumerate(db.collection(name).stream()):
         email = submission.id
@@ -54,6 +57,8 @@ def download_all(name, exam, out, name_question, sid_question):
 
         q_lookup = {question["id"]: question for question in extract_questions(scramble(email, json.loads(exam)))}
 
+        total.append([])
+
         for question_id in q_order:
             question = q_lookup[question_id]
             pdf.add_page()
@@ -62,10 +67,17 @@ def download_all(name, exam, out, name_question, sid_question):
                 pdf.multi_cell(200, 5, txt=line, align="L")
 
             pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
-            for line in response.get(question_id, "").split("\n"):
+            for line in response.get(question_id, "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
                 pdf.multi_cell(200, 5, txt=line, align="L")
 
+            total[-1].append(response.get(question_id, ""))
+
         pdf.output(os.path.join(out, "{}.pdf".format(email)))
+
+    with open(os.path.join(out, "summary.csv"), "w") as f:
+        writer = csv.writer(f)
+        for row in total:
+            writer.writerow(row)
 
 
 def extract_questions(exam):

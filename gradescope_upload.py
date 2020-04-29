@@ -1,6 +1,7 @@
 """
 Developed by Data 8 course staff - all credit goes to them!
 """
+import csv
 import json
 import os
 
@@ -64,8 +65,9 @@ def upload_folder(course, assignment, email, password, target):
     for file_name in os.listdir(target):
         if "@" not in file_name:
             continue
+        student_email = file_name[:-4]
         # print("Uploading:", file_name)
-        client.upload_submission(course, assignment, file_name[:-4], os.path.join(target, file_name))
+        client.upload_submission(course, assignment, student_email, os.path.join(target, file_name))
 
 
 if __name__ == '__main__':
