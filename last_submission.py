@@ -6,6 +6,10 @@ import pytz
 from google.cloud import firestore
 
 
+def time(timestamp):
+    return datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc).astimezone(pytz.timezone("America/Los_Angeles"))
+
+
 @click.command()
 @click.option("--email", default=None)
 @click.option("--roster", default=None, type=click.File("r"))
@@ -23,16 +27,16 @@ def get_last_submission(email, exam, roster):
 
     for email in emails:
         print(email)
-        latest = 0
+        times = []
         for record in db.collection(exam).document(email).collection("log").stream():
             record = record.to_dict()
-            latest = max(latest, record["timestamp"])
-        latest = datetime.utcfromtimestamp(latest).replace(tzinfo=pytz.utc).astimezone(pytz.timezone("America/Los_Angeles"))
-        all_students.append([email, latest])
+            ref = time(record.pop("timestamp"))
+            times.append([ref, next(iter(record.keys())), next(iter(record.values()))])
+        print("\n".join(str(x) + " " + str(y) + " " + str(z) for x, y, z in sorted(times)))
 
     all_students.sort(key=lambda x: x[0])
 
-    print(all_students)
+    print("\n".join(str(x) + " " + str(y) for x, y in all_students))
 
 
 if __name__ == '__main__':
