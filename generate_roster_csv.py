@@ -1,7 +1,7 @@
 import csv
 import os
-from collections import namedtuple, defaultdict
-from datetime import datetime, timedelta
+from collections import namedtuple
+from datetime import datetime
 from os import getenv
 
 import click
@@ -9,17 +9,18 @@ import pytz
 import requests
 
 TARGET = "https://docs.google.com/spreadsheets/d/1YAHnp7gwGwvfctDYIqFM3OFCQTlp_eY81lD2bq5how8/edit"
-SHEET = "Exam #1"
-
-DESTINATION = "exams"
+SHEET = "Exam #2"
 
 AUTH_KEY = getenv("AUTH_KEY")
 AUTH_SECRET = getenv("AUTH_SECRET")
 
 EXAM_STARTS = {
-    1588097400: "cs61a-monday-final-alt-2",
-    1588065000: "cs61a-monday-final-alt",
-    1588021800: "cs61a-monday-final",
+    1588194600: "cs61a-wednesday-final",  # Wed 2:10PM
+    1588237800: "cs61a-wednesday-final-alt",  # Thu 2:10AM
+    1588219800: "cs61a-wednesday-final-alt-2",
+    1588227000: "cs61a-wednesday-final-alt-3",
+    1588245000: "cs61a-wednesday-final-alt-4",
+    1588270200: "cs61a-wednesday-final-alt-5",
 }
 
 Student = namedtuple("Student", ["exam", "deadline"])
