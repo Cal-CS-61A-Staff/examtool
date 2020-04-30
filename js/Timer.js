@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import useInterval from "./useInterval";
 
-export default function Timer({ target, onEnd }) {
+export default function Timer({ target, onLock, onEnd }) {
     const [visible, setVisible] = useState(false);
     const [hover, setHover] = useState(false);
     const [timeString, setTimeString] = useState("");
@@ -16,7 +16,12 @@ export default function Timer({ target, onEnd }) {
 
         setTimeString(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
 
-        if (target - time < 0) {
+        if (target - time < 0 && target - time >= -30) {
+            onLock();
+            setTimeString(`${30 + target - time}s`);
+        }
+
+        if (target - time < -30) {
             onEnd();
         }
     };

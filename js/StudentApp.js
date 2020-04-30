@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
     Col, Container, Form, Navbar, Row,
 } from "react-bootstrap";
+import EndModal from "./EndModal";
 import Exam from "./Exam";
 import ExamContext from "./ExamContext";
 import PasswordDecryptor from "./PasswordDecryptor";
@@ -26,6 +27,8 @@ export default function StudentApp() {
     const [deadline, setDeadline] = useState(null);
 
     const [decryptedGroups, setDecryptedGroups] = useState(null);
+
+    const [examLocked, setExamLocked] = useState(false);
 
     const [examEnded, setExamEnded] = useState(false);
 
@@ -52,13 +55,15 @@ export default function StudentApp() {
         setDeadline(deadline - Math.round(timestamp) + Math.round(new Date().getTime() / 1000) - 2);
     };
 
+    const handleLock = () => setExamLocked(true);
+
     const handleEnd = () => setExamEnded(true);
 
     return (
         <>
             <Navbar bg="dark" variant="dark" sticky="top">
                 <Navbar.Brand href="#">CS 61A Exam Runner</Navbar.Brand>
-                {deadline && <Timer target={deadline} onEnd={handleEnd} />}
+                {deadline && <Timer target={deadline} onLock={handleLock} onEnd={handleEnd} />}
             </Navbar>
             <Container>
                 <br />
@@ -140,9 +145,13 @@ export default function StudentApp() {
                     </>
                 )}
                 <br />
-                <ExamContext.Provider value={{ exam: selectedExam, savedAnswers }}>
+                <ExamContext.Provider value={{
+                    exam: selectedExam, savedAnswers, locked: examLocked,
+                }}
+                >
                     <Exam publicGroup={publicGroup} groups={decryptedGroups} ended={examEnded} />
                 </ExamContext.Provider>
+                {examLocked && <EndModal />}
             </Container>
         </>
     );

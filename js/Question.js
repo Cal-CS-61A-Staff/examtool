@@ -19,10 +19,16 @@ export default function Question({
 
     const defaultValue = examContext.savedAnswers[question.id] || "";
 
-    const [value, setValue] = useState(defaultValue);
+    const [value, actuallySetValue] = useState(defaultValue);
     const [savedValue, setSavedValue] = useState(defaultValue);
     const [saving, setSaving] = useState(false);
     const [failText, setFailText] = useState("");
+
+    const setValue = (val) => {
+        if (!examContext.locked) {
+            actuallySetValue(val);
+        }
+    };
 
     const moveCursor = useRef(null);
 
