@@ -45,6 +45,9 @@ def download_all(name, exam, out, name_question, sid_question):
         email = submission.id
         response = submission.to_dict()
 
+        if 1 < len(response) < 6:
+            print(email, response)
+
         pdf = FPDF()
         pdf.add_page()
 

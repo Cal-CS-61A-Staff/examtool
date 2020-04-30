@@ -56,7 +56,7 @@ def get_elements(group):
 
 def select(substitutions):
     out = {}
-    for k, v in substitutions.items():
+    for k, v in sorted(substitutions.items()):
         out[k] = random.choice(v)
     return out
 

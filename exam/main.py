@@ -107,8 +107,8 @@ def index(request):
                 exam_data,
             )
 
-            # 10 second grace period in case of network latency or something
-            if deadline + 10 < time.time():
+            # 60 second grace period in case of network latency or something
+            if deadline + 60 < time.time():
                 abort(401)
                 return
 
@@ -140,13 +140,14 @@ def index(request):
 
             deadline = get_deadline(exam, email, db)
 
-            if deadline + 10 < time.time():
+            if deadline + 60 < time.time():
                 abort(401)
                 return
 
             db.collection(exam).document(email).set({question_id: value}, merge=True)
             return jsonify({"success": True})
     except:
+        print(dict(request.json))
         return jsonify({"success": False})
 
     return request.path
