@@ -6,7 +6,7 @@ export default function EndModal() {
     const [visible, setVisible] = useState(true);
 
     return (
-        <Modal show={visible} onHide={() => setVisible(false)}>
+        <Modal show={visible}>
             <Modal.Header closeButton>
                 <Modal.Title>The exam has ended!</Modal.Title>
             </Modal.Header>
