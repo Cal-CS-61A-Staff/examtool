@@ -11,7 +11,9 @@ export default function EndModal() {
                 <Modal.Title>The exam has ended!</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                You have 30 seconds to review your answers and ensure that they are saved.
+                You have 60 seconds to review your answers and ensure that they are saved.
+                If something is not saving or doesn&rsquo;t look right, send us an email ASAP
+                with your final answers.
             </Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" onClick={() => setVisible(false)}>

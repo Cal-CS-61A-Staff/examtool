@@ -16,12 +16,12 @@ export default function Timer({ target, onLock, onEnd }) {
 
         setTimeString(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
 
-        if (target - time < 0 && target - time >= -30) {
+        if (target - time < 0 && target - time >= -60) {
             onLock();
-            setTimeString(`${30 + target - time}s`);
+            setTimeString(`${60 + target - time}s`);
         }
 
-        if (target - time < -30) {
+        if (target - time < -60) {
             onEnd();
         }
     };

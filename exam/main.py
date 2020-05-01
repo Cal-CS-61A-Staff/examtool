@@ -107,8 +107,8 @@ def index(request):
                 exam_data,
             )
 
-            # 60 second grace period in case of network latency or something
-            if deadline + 60 < time.time():
+            # 120 second grace period in case of network latency or something
+            if deadline + 120 < time.time():
                 abort(401)
                 return
 
@@ -140,7 +140,7 @@ def index(request):
 
             deadline = get_deadline(exam, email, db)
 
-            if deadline + 60 < time.time():
+            if deadline + 120 < time.time():
                 abort(401)
                 return
 

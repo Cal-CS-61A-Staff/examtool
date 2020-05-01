@@ -5,6 +5,7 @@ import {
 import EndModal from "./EndModal";
 import Exam from "./Exam";
 import ExamContext from "./ExamContext";
+import InternetDown from "./InternetDown";
 import PasswordDecryptor from "./PasswordDecryptor";
 import ExamDownloader from "./ExamDownloader";
 import GoogleSignInButton from "./GoogleSignInButton";
@@ -31,6 +32,8 @@ export default function StudentApp() {
     const [examLocked, setExamLocked] = useState(false);
 
     const [examEnded, setExamEnded] = useState(false);
+
+    const [showInternetError, setShowInternetError] = useState(false);
 
     useEffect(() => {
         const go = async () => {
@@ -146,12 +149,16 @@ export default function StudentApp() {
                 )}
                 <br />
                 <ExamContext.Provider value={{
-                    exam: selectedExam, savedAnswers, locked: examLocked,
+                    exam: selectedExam,
+                    savedAnswers,
+                    locked: examLocked,
+                    onInternetError: () => setShowInternetError(true),
                 }}
                 >
                     <Exam publicGroup={publicGroup} groups={decryptedGroups} ended={examEnded} />
                 </ExamContext.Provider>
                 {examLocked && <EndModal />}
+                {showInternetError && <InternetDown onHide={() => setShowInternetError(false)} /> }
             </Container>
         </>
     );
