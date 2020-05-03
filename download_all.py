@@ -34,6 +34,7 @@ def download_all(name, exam, out, name_question, sid_question):
         pdf.multi_cell(200, 5, txt="\nQUESTION", align="L")
         for line in question["text"].split("\n"):
             pdf.multi_cell(200, 5, txt=line, align="L")
+        pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
     pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
     q_order = [question["id"] for question in extract_questions(json.loads(exam))]
@@ -45,7 +46,7 @@ def download_all(name, exam, out, name_question, sid_question):
         email = submission.id
         response = submission.to_dict()
 
-        if 1 < len(response) < 6:
+        if 1 < len(response) < 10:
             print(email, response)
 
         pdf = FPDF()
@@ -91,9 +92,18 @@ def extract_questions(exam):
 
 
 def group_questions(group):
+    out = _group_questions(group)
+    first = next(out)
+    first["text"] = group["name"] + "\n\n" + group["text"] + "\n\n" + first["text"]
+    yield first
+    yield from out
+
+
+def _group_questions(group):
     for element in group.get("elements", []) + group.get("questions", []):
         if element.get("type") == "group":
-            yield from group_questions(element)
+            out = group_questions(element)
+            yield from out
         else:
             yield element
 

@@ -9,18 +9,18 @@ import pytz
 import requests
 
 TARGET = "https://docs.google.com/spreadsheets/d/1YAHnp7gwGwvfctDYIqFM3OFCQTlp_eY81lD2bq5how8/edit"
-SHEET = "Exam #2"
+SHEET = "Exam #3"
 
 AUTH_KEY = getenv("AUTH_KEY")
 AUTH_SECRET = getenv("AUTH_SECRET")
 
 EXAM_STARTS = {
-    1588194600: "cs61a-wednesday-final",  # Wed 2:10PM
-    1588237800: "cs61a-wednesday-final-alt",  # Thu 2:10AM
-    1588219800: "cs61a-wednesday-final-alt-2",
-    1588227000: "cs61a-wednesday-final-alt-3",
-    1588245000: "cs61a-wednesday-final-alt-4",
-    1588270200: "cs61a-wednesday-final-alt-5",
+    1588367400: "cs61a-friday-final",  # Fri 2:10PM
+    1588410600: "cs61a-friday-final-alt",  # Sat 2:10AM
+    1588392600: "cs61a-friday-final-alt-2",  # Fri 9:10PM
+    1588399800: "cs61a-friday-final-alt-3",  # Fri 11:10PM
+    1588417800: "cs61a-friday-final-alt-4",  # Sat 4:10AM
+    1588443000: "cs61a-friday-final-alt-5"
 }
 
 Student = namedtuple("Student", ["exam", "deadline"])
