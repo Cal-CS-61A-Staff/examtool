@@ -39,7 +39,7 @@ def download_all(name, exam, out, name_question, sid_question):
 
     q_order = [question["id"] for question in extract_questions(json.loads(exam))]
 
-    total = [[question["text"] for question in extract_questions(json.loads(exam))]]
+    total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam))]]
 
     db = firestore.Client()
     for i, submission in enumerate(db.collection(name).stream()):
@@ -61,7 +61,7 @@ def download_all(name, exam, out, name_question, sid_question):
 
         q_lookup = {question["id"]: question for question in extract_questions(scramble(email, json.loads(exam)))}
 
-        total.append([])
+        total.append([email])
 
         for question_id in q_order:
             question = q_lookup[question_id]
