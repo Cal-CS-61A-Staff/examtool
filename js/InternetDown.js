@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 
 export default function InternetDown({ onHide }) {
     return (
-        <Modal show onHide={onHide}>
+        <Modal show>
             <Modal.Header closeButton>
                 <Modal.Title>Network Connection Lost!</Modal.Title>
             </Modal.Header>
