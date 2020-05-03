@@ -8,8 +8,8 @@ from pikepdf import Pdf, Encryption
 import click
 import pytz
 
-from exam.scramble import scramble
-from write.gen_latex import render_latex
+from apps.exam import scramble
+from gen_latex import render_latex
 
 
 @click.command()

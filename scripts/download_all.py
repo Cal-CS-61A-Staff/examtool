@@ -6,7 +6,7 @@ import click
 from google.cloud import firestore
 from fpdf import FPDF
 
-from exam.scramble import scramble
+from apps.exam import scramble
 
 
 @click.command()

@@ -1,12 +1,12 @@
 module.exports = {
     entry: {
-        exam: "./js/studentIndex.js",
-        write: "./js/staffIndex.js",
-        admin: "./js/adminIndex.js",
+        exam: "./apps/js/studentIndex.js",
+        write: "./apps/js/staffIndex.js",
+        admin: "./apps/js/adminIndex.js",
     },
     watch: true,
     output: {
-        filename: "[name]/static/main.js",
+        filename: "apps/[name]/static/main.js",
         path: __dirname,
     },
     externals: {

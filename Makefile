@@ -2,7 +2,7 @@ export PROJECT_ID=banded-syntax-252420
 
 .PHONY: exam-deploy
 exam-deploy:
-	cd exam && gcloud functions deploy exam-server --runtime python37 --trigger-http --entry-point index
+	cd apps/exam && gcloud functions deploy exam-server --runtime python37 --trigger-http --entry-point index
 
 .PHONY: exam-dev
 exam-dev:
@@ -10,11 +10,11 @@ exam-dev:
 	export FLASK_APP=run_local; \
 	export GOOGLE_APPLICATION_CREDENTIALS=$(shell pwd)/creds.json; \
 	export ENV=dev; \
-	yarn run concurrently webpack "flask run"
+	yarn run concurrently webpack "cd apps && flask run"
 
 .PHONY: admin-deploy
 admin-deploy:
-	cd admin && gcloud functions deploy exam-admin --runtime python37 --trigger-http --entry-point index
+	cd apps/admin && gcloud functions deploy exam-admin --runtime python37 --trigger-http --entry-point index
 
 .PHONY: admin-dev
 admin-dev:
@@ -22,7 +22,7 @@ admin-dev:
 	export FLASK_APP=run_local; \
 	export GOOGLE_APPLICATION_CREDENTIALS=$(shell pwd)/creds.json; \
 	export ENV=dev; \
-	yarn run concurrently webpack "flask run"
+	yarn run concurrently webpack "cd apps && flask run"
 
 .PHONY: write-dev
 write-dev:
@@ -30,10 +30,10 @@ write-dev:
 	export FLASK_APP=run_local; \
 	export GOOGLE_APPLICATION_CREDENTIALS=$(shell pwd)/creds.json; \
 	export ENV=dev; \
-	yarn run concurrently webpack "python run_local.py"
+	yarn run concurrently webpack "cd apps && python run_local.py"
 
 .PHONY: write-deploy
 write-deploy:
-	cd write && \
+	cd apps/write && \
 	gcloud builds submit --tag gcr.io/$(PROJECT_ID)/staff-exam-server && \
 	gcloud run deploy --image gcr.io/$(PROJECT_ID)/staff-exam-server --platform managed

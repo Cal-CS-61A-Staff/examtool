@@ -9,17 +9,17 @@ mode = getenv("MODE")
 if mode == "exam":
     sys.path.append(os.path.abspath("exam"))
     os.chdir("exam")
-    from exam.main import index
+    from exam import index
 
 if mode == "admin":
     sys.path.append(os.path.abspath("admin"))
     os.chdir("admin")
-    from admin.main import index
+    from main import index
 
 if mode == "write":
     sys.path.append(os.path.abspath("write"))
     os.chdir("write")
-    from write.app import app
+    from write import app
     app.run()
 
 
