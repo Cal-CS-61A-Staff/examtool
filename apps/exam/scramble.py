@@ -54,7 +54,6 @@ def scramble_options(options):
     movable_option_pos = []
     movable_option_values = []
     for i, option in enumerate(options):
-        print(option)
         if not option.get("fixed"):
             movable_option_pos.append(i)
             movable_option_values.append(option)
