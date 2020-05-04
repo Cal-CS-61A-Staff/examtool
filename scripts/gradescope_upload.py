@@ -57,8 +57,10 @@ class APIClient:
 @click.option("--assignment", prompt=True)
 @click.option("--email", prompt=True)
 @click.option("--password", prompt=True, hide_input=True)
-@click.option("--target", prompt=True, type=click.Path())
-def upload_folder(course, assignment, email, password, target):
+@click.option("--exam", prompt=True, default="cs61a-test-final")
+def upload_folder(course, assignment, email, password, exam):
+    target = "out/export/" + exam
+
     client = APIClient()
     client.log_in(email, password)
 

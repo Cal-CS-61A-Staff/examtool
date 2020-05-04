@@ -13,7 +13,7 @@ def time(timestamp):
 @click.command()
 @click.option("--email", default=None)
 @click.option("--roster", default=None, type=click.File("r"))
-@click.option("--exam")
+@click.option("--exam", prompt=True, default="cs61a-test-final")
 def get_last_submission(email, exam, roster):
     db = firestore.Client()
     if roster:

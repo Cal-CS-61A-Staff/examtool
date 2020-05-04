@@ -2,9 +2,10 @@ node_modules/
 **/static/main.js
 .idea/
 creds.json
-/data/exams/
+/data/eqxams/
 /.firebase/
 /out/out/
 /out/export/
 /data/rosters/
 /data/
+/temp/

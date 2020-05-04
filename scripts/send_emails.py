@@ -8,7 +8,7 @@ from sendgrid import SendGridAPIClient
 
 @click.command()
 @click.option(
-    "--roster", prompt=True, default="sample_roster.csv", type=click.File("r")
+    "--roster", prompt=True, default="data/rosters/sample_roster.csv", type=click.File("r")
 )
 @click.option("--pdf-folder", prompt=True, default="out", type=click.Path())
 def send_emails(roster, pdf_folder):

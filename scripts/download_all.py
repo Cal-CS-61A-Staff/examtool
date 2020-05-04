@@ -6,19 +6,19 @@ import click
 from google.cloud import firestore
 from fpdf import FPDF
 
-from apps.exam import scramble
+from apps.exam.scramble import scramble
 
 
 @click.command()
 @click.option("--name", prompt=True, default="cs61a-test-final")
-@click.option("--exam", prompt=True, default="sample_exam.json", type=click.File('r'))
+@click.option("--exam", prompt=True, default="data/exams/sample_exam.json", type=click.File('r'))
 @click.option("--name-question", prompt=True)
 @click.option("--sid-question", prompt=True)
 @click.option("--out", default=None, type=click.Path())
 def download_all(name, exam, out, name_question, sid_question):
     exam = exam.read()
 
-    out = out or "export/" + name
+    out = out or "out/export/" + name
 
     if not os.path.exists(out):
         os.mkdir(out)

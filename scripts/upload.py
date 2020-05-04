@@ -9,8 +9,8 @@ from google.cloud.exceptions import NotFound
 
 @click.command()
 @click.option("--name", prompt=True, default="cs61a-test-final")
-@click.option("--exam", prompt=True, default="sample_exam.json", type=click.File('r'))
-@click.option("--roster", prompt=True, default="sample_roster.csv", type=click.File('r'))
+@click.option("--exam", prompt=True, default="data/exams/sample_exam.json", type=click.File('r'))
+@click.option("--roster", prompt=True, default="data/rosters/sample_roster.csv", type=click.File('r'))
 @click.option("--default-deadline", prompt=True, default=0, type=int)
 def upload_exam(name, exam, roster, default_deadline):
     exam = exam.read()

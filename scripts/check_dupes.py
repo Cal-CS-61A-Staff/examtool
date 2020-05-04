@@ -1,3 +1,4 @@
+import glob
 import os
 from collections import defaultdict
 
@@ -5,10 +6,15 @@ import click
 
 
 @click.command()
-@click.argument("targets", nargs=-1, type=click.Path())
-def check_dupes(targets):
+@click.option("--exam", prompt=True, default="cs61a-test-final")
+def check_dupes(exam):
     files = defaultdict(list)
-    for target in targets:
+    for target in os.listdir("out/export"):
+        if not target.startswith(exam):
+            continue
+        target = os.path.join("out/export", target)
+        if not os.path.isdir(target):
+            continue
         for file in os.listdir(target):
             if "@" not in file:
                 continue
