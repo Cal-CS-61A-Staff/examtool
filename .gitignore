@@ -7,3 +7,5 @@ creds.json
 /data/
 /temp/
 /out/
+/dist/
+/build/

@@ -2,6 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="examtool",
+    version="0.1.0",
+    author="Rahul Arya",
+    author_email="rahularya@berkeley.edu",
     licence="MIT",
     packages=find_packages(include=["apps"]),
     entry_points={
