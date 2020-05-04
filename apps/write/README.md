@@ -84,6 +84,12 @@ is the `content`, written in Markdown. For instance, you could write
 ```
 to provide a single multiple choice option with value `An option`.
 
+To fix an option in place even if `SCRAMBLE_OPTIONS` is enabled, use the syntax
+```
+# INPUT <type> FIXED <content>
+```
+and it will not be shuffled.
+
 For short / long answer questions, you must provide exactly one input statement within that question.
 The `type` can be `SHORT_ANSWER`, `SHORT_CODE_ANSWER`, `LONG_ANSWER`, or `LONG_CODE_ANSWER`. `CODE` 
 means that the font will be monospaced and tab will work to indent text typed in a `LONG_CODE_ANSWER`.
