@@ -60,7 +60,12 @@ def parse_input_lines(lines):
             _, other_directive, rest = directive_type(line)
             if other_directive != directive:
                 raise SyntaxError("Multiple INPUT types found in a single QUESTION")
-            options.append(parse(rest))
+            fixed = "FIXED "
+            if rest.startswith(fixed):
+                options.append(parse(rest[len(fixed):]))
+                options[-1]["fixed"] = True
+            else:
+                options.append(parse(rest))
         return "multiple_choice" if directive == "OPTION" else "select_all", options
     elif directive in ("SHORT_ANSWER", "SHORT_CODE_ANSWER", "LONG_ANSWER", "LONG_CODE_ANSWER"):
         if len(lines) > 1:

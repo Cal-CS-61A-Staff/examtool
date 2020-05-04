@@ -38,7 +38,7 @@ def scramble_question(question, substitutions, config):
         ["html", "tex", "text"],
     )
     if "scramble_options" in config and isinstance(question["options"], list):
-        random.shuffle(question["options"])
+        scramble_options(question["options"])
         for option in question["options"]:
             substitute(
                 option,
@@ -48,6 +48,19 @@ def scramble_question(question, substitutions, config):
                 ],
                 ["html", "tex", "text"],
             )
+
+
+def scramble_options(options):
+    movable_option_pos = []
+    movable_option_values = []
+    for i, option in enumerate(options):
+        print(option)
+        if not option.get("fixed"):
+            movable_option_pos.append(i)
+            movable_option_values.append(option)
+    random.shuffle(movable_option_values)
+    for i, option in zip(movable_option_pos, movable_option_values):
+        options[i] = option
 
 
 def get_elements(group):
