@@ -1,24 +1,39 @@
 import base64
-import csv
 import os
 
 import click
+from google.cloud import firestore
 from sendgrid import SendGridAPIClient
+
+from cli.utils import hidden_target_folder_option, exam_name_option, prettify
 
 
 @click.command()
-@click.option(
-    "--roster", prompt=True, default="data/rosters/sample_roster.csv", type=click.File("r")
-)
-@click.option("--pdf-folder", prompt=True, default="out", type=click.Path())
-def send_emails(roster, pdf_folder):
-    roster = csv.reader(roster, delimiter=",")
+@exam_name_option
+@hidden_target_folder_option
+@click.option("--email", help="The email address of a particular student.")
+def send(exam, target, email):
+    """
+    Email an encrypted PDF to all students taking an exam. Specify `email` to email only a particular student.
+    """
+    if not target:
+        target = "out/latex/" + exam
 
-    next(roster)
+    course = prettify(exam.split("-")[0])
 
-    roster = list(roster)
+    db = firestore.Client()
 
-    if input("Sending email to {} people - confirm? (y/N) ".format(len([x for x in roster if int(x[1])]))).lower() != "y":
+    roster = []
+    if email:
+        roster = [email]
+    else:
+        for student in db.collection("roster").document(exam).collection("deadline").stream():
+            email = student.id
+            deadline = student.to_dict()["deadline"]
+            if deadline:
+                roster.append(email)
+
+    if input("Sending email to {} people - confirm? (y/N) ".format(len(roster))).lower() != "y":
         exit(1)
 
     for email, deadline in roster:
@@ -39,7 +54,7 @@ def send_emails(roster, pdf_folder):
 
         with open(
             os.path.join(
-                pdf_folder, "exam_" + email.replace("@", "_").replace(".", "_") + ".pdf"
+                target, "exam_" + email.replace("@", "_").replace(".", "_") + ".pdf"
             ),
             "rb"
         ) as f:
@@ -49,13 +64,13 @@ def send_emails(roster, pdf_folder):
             "personalizations": [
                 {"to": [{"email": email}], "substitutions": {}}
             ],
-            "subject": "CS 61A Final Exam PDF (Friday)",
+            "subject": "{course} Final Exam PDF".format(course=course),
             "content": [{"type": "text/plain", "value": body}],
             "attachments": [
                 {
                     "content": pdf,
                     "type": "application/pdf",
-                    "filename": "Encrypted CS 61A Friday Exam.pdf",
+                    "filename": "Encrypted {course} Exam.pdf".format(course=course),
                     "disposition": "attachment",
                 }
             ],
@@ -72,4 +87,4 @@ def send_emails(roster, pdf_folder):
 
 
 if __name__ == "__main__":
-    send_emails()
+    send()

@@ -4,10 +4,16 @@ from collections import defaultdict
 
 import click
 
+from cli.utils import exam_name_option
+
 
 @click.command()
-@click.option("--exam", prompt=True, default="cs61a-test-final")
+@exam_name_option
 def check_dupes(exam):
+    """
+    Search for PDFs submitted for multiple exams.
+    If any are found, you must manually check that the correct one is uploaded to Gradescope.
+    """
     files = defaultdict(list)
     for target in os.listdir("out/export"):
         if not target.startswith(exam):

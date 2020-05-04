@@ -8,6 +8,8 @@ import os
 import click
 import requests
 
+from cli.utils import exam_name_option, hidden_target_folder_option
+
 GRADESCOPE_URL = "https://www.gradescope.com/api/v1/courses/{}/assignments/{}/submissions"
 
 
@@ -53,13 +55,29 @@ class APIClient:
 
 
 @click.command()
-@click.option("--course", prompt=True)
-@click.option("--assignment", prompt=True)
-@click.option("--email", prompt=True)
-@click.option("--password", prompt=True, hide_input=True)
-@click.option("--exam", prompt=True, default="cs61a-test-final")
-def upload_folder(course, assignment, email, password, exam):
-    target = "out/export/" + exam
+@click.option("--course", prompt=True, help="The Gradescope course ID.")
+@click.option("--assignment", prompt=True, help="The Gradescope assignment ID.")
+@click.option("--email", prompt=True, help="Your Gradescope email address.")
+@click.option("--password", prompt=True, hide_input=True, help="Your Gradescope account password.")
+@exam_name_option
+@hidden_target_folder_option
+def gradescope_upload(course, assignment, email, password, exam, target):
+    """
+    Upload exported exam PDFs to Gradescope.
+    Gradescope assignment URLs look like
+
+    ```
+    https://www.gradescope.com/courses/<COURSE>/assignments/<ASSIGNMENT>/grade
+    ```
+
+    <COURSE> and <ASSIGNMENT> are the relevant numbers to be passed in. Your email and password
+    will not be stored on the server after this command completes. Specify `target` only if you have
+    downloaded your PDFs to somewhere other than the default.
+
+    You can upload multiple exams to the same assignment as long as they have the same underlying JSON
+    (i.e. alternate exams).
+    """
+    target = target or "out/export/" + exam
 
     client = APIClient()
     client.log_in(email, password)
@@ -73,4 +91,4 @@ def upload_folder(course, assignment, email, password, exam):
 
 
 if __name__ == '__main__':
-    upload_folder()
+    gradescope_upload()

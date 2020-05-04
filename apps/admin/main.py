@@ -77,7 +77,7 @@ def index(request):
         if request.path.endswith("list_exams"):
             exams = db.collection("exams").document("all").get().to_dict()["exam-list"]
             return jsonify([
-                exam for exam in exams if exam.startswith(course)
+                exam for exam in exams if exam.startswith(course + "-")
             ])
 
         if request.path.endswith("get_exam"):

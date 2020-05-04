@@ -7,15 +7,20 @@ from google.cloud import firestore
 from fpdf import FPDF
 
 from apps.exam.scramble import scramble
+from cli.utils import exam_name_option, hidden_output_folder_option
 
 
 @click.command()
-@click.option("--name", prompt=True, default="cs61a-test-final")
-@click.option("--exam", prompt=True, default="data/exams/sample_exam.json", type=click.File('r'))
-@click.option("--name-question", prompt=True)
-@click.option("--sid-question", prompt=True)
-@click.option("--out", default=None, type=click.Path())
-def download_all(name, exam, out, name_question, sid_question):
+@exam_name_option
+@click.option("--name-question", default=None, help="The ID of the question for the student's name.")
+@click.option("--sid-question", default=None, help="The ID of the question for the student's SID.")
+@hidden_output_folder_option
+def download(name, exam, out, name_question, sid_question):
+    """
+    Download student submissions for an exam.
+    Exams are downloaded as PDFs into a target folder - specify `out` to redirect the folder.
+    An `OUTLINE.pdf` is also generated for Gradescope, as is a `summary.csv` for analytics or autograding.
+    """
     exam = exam.read()
 
     out = out or "out/export/" + name
@@ -109,4 +114,4 @@ def _group_questions(group):
 
 
 if __name__ == "__main__":
-    download_all()
+    download()

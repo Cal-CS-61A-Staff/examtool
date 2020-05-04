@@ -5,16 +5,23 @@ import click
 import pytz
 from google.cloud import firestore
 
+from cli.utils import exam_name_option
+
 
 def time(timestamp):
     return datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc).astimezone(pytz.timezone("America/Los_Angeles"))
 
 
 @click.command()
-@click.option("--email", default=None)
-@click.option("--roster", default=None, type=click.File("r"))
-@click.option("--exam", prompt=True, default="cs61a-test-final")
-def get_last_submission(email, exam, roster):
+@click.option("--email", default=None, help="A student's target email address.")
+@click.option("--roster", default=None, type=click.File("r"), help="A roster CSV.")
+@exam_name_option
+def logs(email, exam, roster):
+    """
+    Export the submission history.
+    Specify `email` to target a particular student,
+    or specify `roster` to target all students listed in a particular roster CSV.
+    """
     db = firestore.Client()
     if roster:
         roster = csv.reader(roster, delimiter=",")
@@ -40,4 +47,4 @@ def get_last_submission(email, exam, roster):
 
 
 if __name__ == '__main__':
-    get_last_submission()
+    logs()

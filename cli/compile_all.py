@@ -10,12 +10,17 @@ import pytz
 
 from apps.exam.scramble import scramble
 from apps.write.gen_latex import render_latex
+from cli.utils import exam_name_option, hidden_output_folder_option
 
 
 @click.command()
-@click.option("--name", prompt=True, default="cs61a-test-final")
-@click.option("--out", default=None, type=click.Path())
+@exam_name_option
+@hidden_output_folder_option
 def compile_all(name, out):
+    """
+    Compile individualized PDFs for the specified exam.
+    Exam must have been deployed first.
+    """
     db = firestore.Client()
 
     if not out:
