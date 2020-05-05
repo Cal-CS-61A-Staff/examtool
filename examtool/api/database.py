@@ -11,7 +11,7 @@ if getenv("ENV") == "SERVER":
 
 
 @server_only
-def get_exam(exam):
+def get_exam(*, exam):
     try:
         db = firestore.Client()
         return db.collection("exams").document(exam).get().to_dict()
@@ -20,7 +20,7 @@ def get_exam(exam):
 
 
 @server_only
-def set_exam(exam, json):
+def set_exam(*, exam, json):
     db = firestore.Client()
     db.collection("exams").document(exam).set(json)
 
@@ -33,14 +33,14 @@ def set_exam(exam, json):
 
 @server_only
 @as_list
-def get_roster(exam):
+def get_roster(*, exam):
     db = firestore.Client()
     for student in db.collection("roster").document(exam).collection("deadline").stream():
         yield student.id, student.to_dict()["deadline"]
 
 
 @server_only
-def set_roster(exam, roster):
+def set_roster(*, exam, roster):
     db = firestore.Client()
 
     ref = db.collection("roster").document(exam).collection("deadline")
@@ -71,7 +71,7 @@ def set_roster(exam, roster):
 
 @server_only
 @as_list
-def get_submissions(exam):
+def get_submissions(*, exam):
     db = firestore.Client()
 
     for ref in db.collection(exam).stream():
@@ -80,7 +80,7 @@ def get_submissions(exam):
 
 @server_only
 @as_list
-def get_logs(exam, email):
+def get_logs(*, exam, email):
     db = firestore.Client()
 
     for ref in db.collection(exam).document(email).collection("log").stream():

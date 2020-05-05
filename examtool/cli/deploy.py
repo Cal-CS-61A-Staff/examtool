@@ -45,14 +45,14 @@ def deploy(exam, json, roster, default_deadline):
     json["secret"] = Fernet.generate_key()
 
     try:
-        json["secret"] = get_exam(exam)["secret"]
+        json["secret"] = get_exam(exam=exam)["secret"]
     except (TypeError, KeyError):
         pass
 
-    set_exam(exam, json)
+    set_exam(exam=exam, json=json)
 
     next(roster)  # ditch headers
-    set_roster(exam, roster)
+    set_roster(exam=exam, roster=roster)
 
     print("Exam uploaded with password:", json["secret"][:-1].decode("utf-8"))
 

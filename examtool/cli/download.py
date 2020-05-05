@@ -21,7 +21,7 @@ def download(exam, out, name_question, sid_question):
     Exams are downloaded as PDFs into a target folder - specify `out` to redirect the folder.
     An `OUTLINE.pdf` is also generated for Gradescope, as is a `summary.csv` for analytics or autograding.
     """
-    exam_json = get_exam(exam)
+    exam_json = get_exam(exam=exam)
     exam_json.pop("secret")
     exam_json = json.dumps(exam_json)
 
@@ -48,7 +48,7 @@ def download(exam, out, name_question, sid_question):
 
     total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam_json))]]
 
-    for email, response in get_submissions(exam):
+    for email, response in get_submissions(exam=exam):
         if 1 < len(response) < 10:
             print(email, response)
 

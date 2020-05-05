@@ -34,7 +34,7 @@ def logs(email, exam, roster):
     for email in emails:
         print(email)
         times = []
-        for record in get_logs(exam, email):
+        for record in get_logs(exam=exam, email=email):
             ref = time(record.pop("timestamp"))
             times.append([ref, next(iter(record.keys())), next(iter(record.values()))])
         print("\n".join(str(x) + " " + str(y) + " " + str(z) for x, y, z in sorted(times)))

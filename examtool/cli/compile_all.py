@@ -16,26 +16,26 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option
 @click.command()
 @exam_name_option
 @hidden_output_folder_option
-def compile_all(name, out):
+def compile_all(exam, out):
     """
-    Compile individualized PDFs for the specified exam.
+    Compile individualized PDFs for the specified exam_data.
     Exam must have been deployed first.
     """
     if not out:
-        out = "out/latex/" + name
+        out = "out/latex/" + exam
 
     if not os.path.exists(out):
         os.mkdir(out)
 
-    exam = get_exam(name)
-    password = exam.pop("secret")
-    exam_str = json.dumps(exam)
+    exam_data = get_exam(exam=exam)
+    password = exam_data.pop("secret")
+    exam_str = json.dumps(exam_data)
 
-    for email, deadline in get_roster(exam):
+    for email, deadline in get_roster(exam_data):
         if not deadline:
             continue
-        exam = json.loads(exam_str)
-        scramble(email, exam)
+        exam_data = json.loads(exam_str)
+        scramble(email, exam_data)
         deadline_utc = datetime.utcfromtimestamp(int(deadline))
         deadline_pst = pytz.utc.localize(deadline_utc).astimezone(
             pytz.timezone("America/Los_Angeles")
@@ -43,7 +43,7 @@ def compile_all(name, out):
         deadline_string = deadline_pst.strftime("%I:%M%p")
 
         with render_latex(
-            exam,
+            exam_data,
             {"emailaddress": email.replace("_", r"\_"), "deadline": deadline_string},
         ) as pdf:
             os.chdir(os.path.dirname(os.path.abspath(__file__)))

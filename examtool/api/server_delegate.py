@@ -8,8 +8,7 @@ from examtool.api.auth import get_token, refresh_token
 
 def server_only(func):
     @wraps(func)
-    def wrapped(*args, **kwargs):
-        kwargs.update(dict(zip(func.__code__.co_varnames, args)))
+    def wrapped(**kwargs):
         if getenv("ENV") == "SERVER":
             return func(**kwargs)
         else:
