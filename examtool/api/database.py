@@ -14,7 +14,10 @@ if getenv("ENV") == "SERVER":
 def get_exam(*, exam):
     try:
         db = firestore.Client()
-        return db.collection("exams").document(exam).get().to_dict()
+        out = db.collection("exams").document(exam).get().to_dict()
+        if "secret" in out and isinstance(out["secret"], bytes):
+            out["secret"] = out["secret"].decode("utf-8")
+        return out
     except NotFound:
         raise KeyError
 

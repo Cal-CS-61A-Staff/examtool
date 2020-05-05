@@ -42,7 +42,7 @@ def deploy(exam, json, roster, default_deadline):
     json = loads(json)
 
     json["default_deadline"] = default_deadline
-    json["secret"] = Fernet.generate_key()
+    json["secret"] = Fernet.generate_key().decode("utf-8")
 
     try:
         json["secret"] = get_exam(exam=exam)["secret"]
@@ -54,7 +54,7 @@ def deploy(exam, json, roster, default_deadline):
     next(roster)  # ditch headers
     set_roster(exam=exam, roster=roster)
 
-    print("Exam uploaded with password:", json["secret"][:-1].decode("utf-8"))
+    print("Exam uploaded with password:", json["secret"][:-1])
 
 
 if __name__ == "__main__":
