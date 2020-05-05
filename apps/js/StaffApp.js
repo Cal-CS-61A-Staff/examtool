@@ -30,7 +30,7 @@ export default function StaffApp() {
     const generate = async () => {
         const text = editorRef.current.getValue();
         setLoading(true);
-        const ret = await post("convert", { text });
+        const ret = await post("convert", { text }, true);
         setLoading(false);
         if (!ret.ok) {
             return;

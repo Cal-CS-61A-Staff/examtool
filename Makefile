@@ -10,7 +10,7 @@ exam-dev:
 	export FLASK_APP=run_local; \
 	export GOOGLE_APPLICATION_CREDENTIALS=$(shell pwd)/creds.json; \
 	export ENV=dev; \
-	yarn run concurrently webpack "cd apps && flask run"
+	yarn run concurrently webpack "cd apps && python run_local.py"
 
 .PHONY: admin-deploy
 admin-deploy:
