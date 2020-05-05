@@ -52,7 +52,7 @@ def deploy(exam, json, roster, default_deadline):
     set_exam(exam=exam, json=json)
 
     next(roster)  # ditch headers
-    set_roster(exam=exam, roster=roster)
+    set_roster(exam=exam, roster=list(roster))
 
     print("Exam uploaded with password:", json["secret"][:-1])
 

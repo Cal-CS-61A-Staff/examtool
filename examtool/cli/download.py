@@ -6,7 +6,7 @@ import click
 from fpdf import FPDF
 
 from examtool.api.database import get_exam, get_submissions
-from examtool.api import scramble
+from examtool.api.scramble import scramble
 from examtool.cli.utils import exam_name_option, hidden_output_folder_option
 
 
