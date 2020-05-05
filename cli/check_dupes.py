@@ -1,4 +1,3 @@
-import glob
 import os
 from collections import defaultdict
 

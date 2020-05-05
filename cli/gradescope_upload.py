@@ -1,7 +1,6 @@
 """
 Developed by Data 8 course staff - all credit goes to them!
 """
-import csv
 import json
 import os
 

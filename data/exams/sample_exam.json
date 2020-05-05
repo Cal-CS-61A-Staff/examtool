@@ -6,7 +6,7 @@
 		"text": "You can complete and submit these questions before the exam starts.\n",
 		"elements": [
 			{
-				"id": "FBJAFHVXZWWSIPZDKHQDHWJUHIUSZQWY",
+				"id": "MOXCVTKXBNYTGRQOWXCBVJFQAYHKNAOV",
 				"type": "short_answer",
 				"html": "<p>What is your full name?</p>\n",
 				"tex": "What is your full name?\n",
@@ -16,7 +16,7 @@
 				"points": null
 			},
 			{
-				"id": "PQZFNHBECDJQBBKHMJKBIGZOFEOQDHWO",
+				"id": "TUGEMRMEPSKLJLXTQOKNNBHDYFLAKEPQ",
 				"type": "short_code_answer",
 				"html": "<p>What is your student ID number?</p>\n",
 				"tex": "What is your student ID number?\n",
@@ -38,7 +38,7 @@
 			"text": "*This is some very important text*. This text is not so important.",
 			"elements": [
 				{
-					"id": "ZIWQUPOXNGQIRYHQYCWHTXPKATKLCAUL",
+					"id": "EMSBYFAGNPKAAMNCXYXJHKWSAGNUDJXV",
 					"type": "multiple_choice",
 					"html": "<p>These are some multiple choice questions. You must select exactly one.</p>\n",
 					"tex": "These are some multiple choice questions. You must select exactly one.\n",
@@ -64,7 +64,7 @@
 					"points": 2
 				},
 				{
-					"id": "KERSVYWMPMCOBGKRGOEAIIXAYDQGQUYA",
+					"id": "TTOXEFXPSBHVJQGRITSRJYSGIRQRPRRE",
 					"type": "short_answer",
 					"html": "<p>This is a short answer question.</p>\n",
 					"tex": "This is a short answer question.\n",
@@ -91,7 +91,7 @@
 					"text": "There can be subgroups of questions.\n",
 					"elements": [
 						{
-							"id": "JBJOTJYYGYECXCAIWWPSUYLKKICABMLN",
+							"id": "LYCEHZSNOBJKQMDEGAOHOCRJUQEWCVMW",
 							"type": "select_all",
 							"html": "<p><span class=\"math inline\">\\(\\LaTeX\\)</span> display math is also supported <span class=\"math display\">\\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]</span></p>\n",
 							"tex": "\\(\\LaTeX\\) display math is also supported \\[\n    \\int_{0}^\\infty e^{-x^2 / 2} \\, \\mathrm{d}x\n\\]\n",
@@ -100,7 +100,8 @@
 								{
 									"html": "<p>Select all</p>\n",
 									"tex": "Select all\n",
-									"text": "Select all"
+									"text": "Select all",
+									"fixed": true
 								},
 								{
 									"html": "<p>options</p>\n",
@@ -122,7 +123,7 @@
 					"points": 2
 				},
 				{
-					"id": "IPLTUZCTJPRUSMKMFOJYMMPKFPAIKJTJ",
+					"id": "YGLKTUFOMXXQPWVXZWHUJNSDPDHNYJXV",
 					"type": "long_code_answer",
 					"html": "<p>You can also include large code blocks in questions</p>\n<pre><code>m, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160</code></pre>\n<p>And allow code in answers too</p>\n",
 					"tex": "You can also include large code blocks in questions\n\n\\begin{verbatim}\nm, t = Day(), Week(199)\nt.mask(200)(100)(150)(160)\nDay.aqi = 140\nt.aqi = 160\n\\end{verbatim}\n\nAnd allow code in answers too\n",
@@ -132,7 +133,7 @@
 					"points": 7
 				},
 				{
-					"id": "XUXOOHHCJATKFZYNXDNRZXKLKXMPSVQD",
+					"id": "NMVBSCKPPVJSPQRHQLFKTAPNMCJPYLGU",
 					"type": "long_answer",
 					"html": "<p>You can omit point values for particular questions, if you want.</p>\n<p>Paragraph answers are allowed. You can even specify the number of lines displayed! This block is four lines long.</p>\n",
 					"tex": "You can omit point values for particular questions, if you want.\n\nParagraph answers are allowed. You can even specify the number of lines\ndisplayed! This block is four lines long.\n",
@@ -142,7 +143,7 @@
 					"points": null
 				},
 				{
-					"id": "PEYCGCOLJNRSCBMJXFZVXZHFAVVSGRNF",
+					"id": "NLTKBFBJXOJSCYKKZKYMEBINBBWVMGNG",
 					"type": "short_code_answer",
 					"html": "<p>Images and other markdown features should all be supported. If it works on GitHub, it should work here.</p>\n<h2 id=\"stuff\">Stuff</h2>\n<figure>\n<img src=\"https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png\" title=\"Logo Title Text 1\" />\n</figure>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Tables</th>\n<th style=\"text-align: center;\">Are</th>\n<th style=\"text-align: right;\">Cool</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>col 3 is</td>\n<td style=\"text-align: center;\">right-aligned</td>\n<td style=\"text-align: right;\">$1600</td>\n</tr>\n<tr class=\"even\">\n<td>col 2 is</td>\n<td style=\"text-align: center;\">centered</td>\n<td style=\"text-align: right;\">$12</td>\n</tr>\n<tr class=\"odd\">\n<td>zebra stripes</td>\n<td style=\"text-align: center;\">are neat</td>\n<td style=\"text-align: right;\">$1</td>\n</tr>\n</tbody>\n</table>\n",
 					"tex": "Images and other markdown features should all be supported. If it works\non GitHub, it should work here.\n\n\\subsection{Stuff}\\label{stuff}\n\n\\begin{figure}\n\\centering\n\\includegraphics{https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png}\n\\caption{}\n\\end{figure}\n\n\\begin{longtable}[]{@{}lcr@{}}\n\\toprule\nTables & Are & Cool\\tabularnewline\n\\midrule\n\\endhead\ncol 3 is & right-aligned & \\$1600\\tabularnewline\ncol 2 is & centered & \\$12\\tabularnewline\nzebra stripes & are neat & \\$1\\tabularnewline\n\\bottomrule\n\\end{longtable}\n",

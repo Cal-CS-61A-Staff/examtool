@@ -11,5 +11,5 @@ setup(
         "console_scripts": [
             "exam=cli.__main__:cli",
         ]
-    }, install_requires=['click', 'pikepdf', 'pytz']
+    }, install_requires=['click', 'pikepdf', 'pytz', 'requests', 'fpdf']
 )

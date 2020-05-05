@@ -3,9 +3,9 @@ import json
 import os
 
 import click
-from google.cloud import firestore
 from fpdf import FPDF
 
+from api.database import get_exam
 from apps.exam.scramble import scramble
 from cli.utils import exam_name_option, hidden_output_folder_option
 
@@ -15,15 +15,15 @@ from cli.utils import exam_name_option, hidden_output_folder_option
 @click.option("--name-question", default=None, help="The ID of the question for the student's name.")
 @click.option("--sid-question", default=None, help="The ID of the question for the student's SID.")
 @hidden_output_folder_option
-def download(name, exam, out, name_question, sid_question):
+def download(exam, out, name_question, sid_question):
     """
     Download student submissions for an exam.
     Exams are downloaded as PDFs into a target folder - specify `out` to redirect the folder.
     An `OUTLINE.pdf` is also generated for Gradescope, as is a `summary.csv` for analytics or autograding.
     """
-    exam = exam.read()
+    exam_json = get_exam()
 
-    out = out or "out/export/" + name
+    out = out or "out/export/" + exam
 
     if not os.path.exists(out):
         os.mkdir(out)
@@ -31,7 +31,7 @@ def download(name, exam, out, name_question, sid_question):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Courier", size=16)
-    pdf.multi_cell(200, 20, txt=name, align="L")
+    pdf.multi_cell(200, 20, txt=exam, align="L")
 
     pdf.set_font("Courier", size=9)
     for question in extract_questions(json.loads(exam)):
@@ -46,8 +46,7 @@ def download(name, exam, out, name_question, sid_question):
 
     total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam))]]
 
-    db = firestore.Client()
-    for i, submission in enumerate(db.collection(name).stream()):
+    for email, response in get_submissions(name):
         email = submission.id
         response = submission.to_dict()
 

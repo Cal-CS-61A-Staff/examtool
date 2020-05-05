@@ -3,40 +3,37 @@ import os
 from datetime import datetime
 from io import BytesIO
 
-from google.cloud import firestore
 from pikepdf import Pdf, Encryption
 import click
 import pytz
 
+from api.database import get_exam, get_roster
 from apps.exam.scramble import scramble
 from apps.write.gen_latex import render_latex
-from cli.utils import exam_name_option, hidden_output_folder_option
+from cli.utils import exam_name_option, hidden_output_folder_option, delegate_to_server
 
 
 @click.command()
 @exam_name_option
 @hidden_output_folder_option
+@delegate_to_server
 def compile_all(name, out):
     """
     Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
     """
-    db = firestore.Client()
-
     if not out:
         out = "out/latex/" + name
 
     if not os.path.exists(out):
         os.mkdir(out)
 
-    exam = db.collection("exams").document(name).get().to_dict()
+    exam = get_exam(name)
     password = exam.pop("secret")
     exam_str = json.dumps(exam)
 
-    for student in db.collection("roster").document(name).collection("deadline").stream():
-        email = student.id
-        deadline = student.to_dict()["deadline"]
-        if not int(deadline):
+    for email, deadline in get_roster(exam):
+        if not deadline:
             continue
         exam = json.loads(exam_str)
         scramble(email, exam)

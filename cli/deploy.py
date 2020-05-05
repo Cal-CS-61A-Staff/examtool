@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 from google.cloud import firestore
 from google.cloud.exceptions import NotFound
 
+from api.database import set_exam, get_exam, set_roster
 from cli.utils import exam_name_option
 
 
@@ -40,58 +41,20 @@ def deploy(exam, json, roster, default_deadline):
     json = json.read()
     roster = csv.reader(roster, delimiter=",")
 
-    db = firestore.Client()
-    ref = db.collection("exams").document(exam)
     json = loads(json)
 
     json["default_deadline"] = default_deadline
     json["secret"] = Fernet.generate_key()
 
     try:
-        json["secret"] = ref.get().to_dict()["secret"]
+        json["secret"] = get_exam(exam)["secret"]
     except (NotFound, TypeError):
         pass
 
-    ref.set(json)
-
-    ref = db.collection("roster").document(exam).collection("deadline")
-
-    print("Deleting previously uploaded roster...")
-    batch = db.batch()
-    cnt = 0
-    for document in ref.stream():
-        batch.delete(document.reference)
-        cnt += 1
-        if cnt > 400:
-            batch.commit()
-            batch = db.batch()
-            cnt = 0
-            print("Batch of 400 deletes complete")
-    batch.commit()
-    print("Old roster deleted!")
+    set_exam(exam, json)
 
     next(roster)  # ditch headers
-
-    print("Uploading new roster...")
-    batch = db.batch()
-    cnt = 0
-    for email, deadline in roster:
-        doc_ref = ref.document(email)
-        batch.set(doc_ref, {"deadline": int(deadline)})
-        cnt += 1
-        if cnt > 400:
-            batch.commit()
-            batch = db.batch()
-            cnt = 0
-            print("Batch of 400 writes complete")
-    batch.commit()
-    print("New roster uploaded!")
-
-    ref = db.collection("exams").document("all")
-    data = ref.get().to_dict()
-    if exam not in data["exam-list"]:
-        data["exam-list"].append(exam)
-    ref.set(data)
+    set_roster(exam, roster)
 
     print("Exam uploaded with password:", json["secret"][:-1].decode("utf-8"))
 
