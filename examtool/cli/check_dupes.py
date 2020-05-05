@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import click
 
-from cli.utils import exam_name_option
+from examtool.cli.utils import exam_name_option
 
 
 @click.command()

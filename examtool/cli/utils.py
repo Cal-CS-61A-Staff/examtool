@@ -1,10 +1,6 @@
 import re
-from functools import wraps
-from os import getenv
 
 import click
-
-from api import auth
 
 exam_name_option = click.option(
     "--exam", prompt=True, default="cs61a-test-final", help="The exam name."

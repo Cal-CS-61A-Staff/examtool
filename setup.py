@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name="examtool",
-    version="0.1.5",
+    version="0.1.6",
     author="Rahul Arya",
     author_email="rahularya@berkeley.edu",
     licence="MIT",
-    packages=find_packages(include=["api", "cli"]),
+    packages=find_packages(include=["examtool.api", "examtool.cli"]),
     entry_points={
         "console_scripts": [
             "examtool=cli.__main__:cli",

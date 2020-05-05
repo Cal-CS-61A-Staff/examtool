@@ -1,7 +1,7 @@
 from os import getenv
 
-from api.server_delegate import server_only
-from api.utils import as_list
+from examtool.api import server_only
+from examtool.api import as_list
 
 if getenv("ENV") == "SERVER":
     # noinspection PyPackageRequirements

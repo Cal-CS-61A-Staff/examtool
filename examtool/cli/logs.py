@@ -4,8 +4,8 @@ from datetime import datetime
 import click
 import pytz
 
-from api.database import get_logs
-from cli.utils import exam_name_option
+from examtool.api import get_logs
+from examtool.cli.utils import exam_name_option
 
 
 def time(timestamp):

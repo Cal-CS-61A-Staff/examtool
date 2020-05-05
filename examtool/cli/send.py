@@ -3,9 +3,9 @@ import os
 
 import click
 
-from api.database import get_roster
-from api.email import send_email
-from cli.utils import hidden_target_folder_option, exam_name_option, prettify
+from examtool.api import get_roster
+from examtool.api import send_email
+from examtool.cli.utils import hidden_target_folder_option, exam_name_option, prettify
 
 
 @click.command()

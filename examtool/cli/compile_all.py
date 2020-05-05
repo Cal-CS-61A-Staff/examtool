@@ -7,10 +7,10 @@ from pikepdf import Pdf, Encryption
 import click
 import pytz
 
-from api.database import get_exam, get_roster
-from api.scramble import scramble
-from api.gen_latex import render_latex
-from cli.utils import exam_name_option, hidden_output_folder_option
+from examtool.api import get_exam, get_roster
+from examtool.api import scramble
+from examtool.api import render_latex
+from examtool.cli.utils import exam_name_option, hidden_output_folder_option
 
 
 @click.command()

@@ -1,13 +1,13 @@
 import click
 
-from cli.check_dupes import check_dupes
-from cli.compile_all import compile_all
-from cli.deploy import deploy
-from cli.download import download
-from cli.gradescope_upload import gradescope_upload
-from cli.login import login
-from cli.logs import logs
-from cli.send import send
+from examtool.cli import check_dupes
+from examtool.cli.compile_all import compile_all
+from examtool.cli.deploy import deploy
+from examtool.cli.download import download
+from examtool.cli.gradescope_upload import gradescope_upload
+from examtool.cli.login import login
+from examtool.cli.logs import logs
+from examtool.cli.send import send
 
 
 @click.group()

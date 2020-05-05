@@ -7,7 +7,7 @@ import os
 import click
 import requests
 
-from cli.utils import exam_name_option, hidden_target_folder_option
+from examtool.cli.utils import exam_name_option, hidden_target_folder_option
 
 GRADESCOPE_URL = "https://www.gradescope.com/api/v1/courses/{}/assignments/{}/submissions"
 
