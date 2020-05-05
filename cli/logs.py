@@ -3,8 +3,8 @@ from datetime import datetime
 
 import click
 import pytz
-from google.cloud import firestore
 
+from api.database import get_logs
 from cli.utils import exam_name_option
 
 
@@ -22,7 +22,6 @@ def logs(email, exam, roster):
     Specify `email` to target a particular student,
     or specify `roster` to target all students listed in a particular roster CSV.
     """
-    db = firestore.Client()
     if roster:
         roster = csv.reader(roster, delimiter=",")
         next(roster)
@@ -35,8 +34,7 @@ def logs(email, exam, roster):
     for email in emails:
         print(email)
         times = []
-        for record in db.collection(exam).document(email).collection("log").stream():
-            record = record.to_dict()
+        for record in get_logs(exam, email):
             ref = time(record.pop("timestamp"))
             times.append([ref, next(iter(record.keys())), next(iter(record.values()))])
         print("\n".join(str(x) + " " + str(y) + " " + str(z) for x, y, z in sorted(times)))

@@ -5,8 +5,8 @@ import os
 import click
 from fpdf import FPDF
 
-from api.database import get_exam
-from apps.exam.scramble import scramble
+from api.database import get_exam, get_submissions
+from api.scramble import scramble
 from cli.utils import exam_name_option, hidden_output_folder_option
 
 
@@ -21,7 +21,9 @@ def download(exam, out, name_question, sid_question):
     Exams are downloaded as PDFs into a target folder - specify `out` to redirect the folder.
     An `OUTLINE.pdf` is also generated for Gradescope, as is a `summary.csv` for analytics or autograding.
     """
-    exam_json = get_exam()
+    exam_json = get_exam(exam)
+    exam_json.pop("secret")
+    exam_json = json.dumps(exam_json)
 
     out = out or "out/export/" + exam
 
@@ -34,7 +36,7 @@ def download(exam, out, name_question, sid_question):
     pdf.multi_cell(200, 20, txt=exam, align="L")
 
     pdf.set_font("Courier", size=9)
-    for question in extract_questions(json.loads(exam)):
+    for question in extract_questions(json.loads(exam_json)):
         pdf.add_page()
         pdf.multi_cell(200, 5, txt="\nQUESTION", align="L")
         for line in question["text"].split("\n"):
@@ -42,14 +44,11 @@ def download(exam, out, name_question, sid_question):
         pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
     pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
-    q_order = [question["id"] for question in extract_questions(json.loads(exam))]
+    q_order = [question["id"] for question in extract_questions(json.loads(exam_json))]
 
-    total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam))]]
+    total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam_json))]]
 
-    for email, response in get_submissions(name):
-        email = submission.id
-        response = submission.to_dict()
-
+    for email, response in get_submissions(exam):
         if 1 < len(response) < 10:
             print(email, response)
 
@@ -57,13 +56,13 @@ def download(exam, out, name_question, sid_question):
         pdf.add_page()
 
         pdf.set_font("Courier", size=16)
-        pdf.multi_cell(200, 20, txt=name, align="L")
+        pdf.multi_cell(200, 20, txt=exam, align="L")
         pdf.multi_cell(200, 20, txt=response.get(name_question, "NO NAME"), align="L")
         pdf.multi_cell(200, 20, txt=response.get(sid_question, "NO SID"), align="L")
 
         pdf.set_font("Courier", size=9)
 
-        q_lookup = {question["id"]: question for question in extract_questions(scramble(email, json.loads(exam)))}
+        q_lookup = {question["id"]: question for question in extract_questions(scramble(email, json.loads(exam_json)))}
 
         total.append([email])
 

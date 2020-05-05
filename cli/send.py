@@ -2,9 +2,9 @@ import base64
 import os
 
 import click
-from google.cloud import firestore
-from sendgrid import SendGridAPIClient
 
+from api.database import get_roster
+from api.email import send_email
 from cli.utils import hidden_target_folder_option, exam_name_option, prettify
 
 
@@ -21,15 +21,11 @@ def send(exam, target, email):
 
     course = prettify(exam.split("-")[0])
 
-    db = firestore.Client()
-
     roster = []
     if email:
         roster = [email]
     else:
-        for student in db.collection("roster").document(exam).collection("deadline").stream():
-            email = student.id
-            deadline = student.to_dict()["deadline"]
+        for email, deadline in get_roster(exam):
             if deadline:
                 roster.append(email)
 
@@ -76,14 +72,7 @@ def send(exam, target, email):
             ],
         }
 
-        try:
-            sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-            response = sg.client.mail.send.post(data)
-            print(response.status_code)
-            print(response.body)
-            print(response.headers)
-        except Exception as e:
-            print(e)
+        send_email(data)
 
 
 if __name__ == "__main__":

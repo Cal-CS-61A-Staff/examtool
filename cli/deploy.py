@@ -3,8 +3,6 @@ from json import loads
 
 import click
 from cryptography.fernet import Fernet
-from google.cloud import firestore
-from google.cloud.exceptions import NotFound
 
 from api.database import set_exam, get_exam, set_roster
 from cli.utils import exam_name_option
@@ -35,8 +33,8 @@ from cli.utils import exam_name_option
 )
 def deploy(exam, json, roster, default_deadline):
     """
-    Deploy an json to the website. You must specify a JSON and associated roster CSV.
-    You can deploy the json multiple times and the password will remain unchanged.
+    Deploy an JSON to the website. You must specify a JSON and associated roster CSV.
+    You can deploy the JSON multiple times and the password will remain unchanged.
     """
     json = json.read()
     roster = csv.reader(roster, delimiter=",")
@@ -48,7 +46,7 @@ def deploy(exam, json, roster, default_deadline):
 
     try:
         json["secret"] = get_exam(exam)["secret"]
-    except (NotFound, TypeError):
+    except (TypeError, KeyError):
         pass
 
     set_exam(exam, json)

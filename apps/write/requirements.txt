@@ -1,4 +1,0 @@
-# my deps
-Flask
-gunicorn
-pypandoc

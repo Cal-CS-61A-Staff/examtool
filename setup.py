@@ -9,7 +9,7 @@ setup(
     packages=find_packages(include=["apps"]),
     entry_points={
         "console_scripts": [
-            "exam=cli.__main__:cli",
+            "examtool=cli.__main__:cli",
         ]
-    }, install_requires=['click', 'pikepdf', 'pytz', 'requests', 'fpdf']
+    }, install_requires=['click', 'pikepdf', 'pytz', 'requests', 'fpdf', 'cryptography']
 )

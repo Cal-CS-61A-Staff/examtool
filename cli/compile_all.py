@@ -8,15 +8,14 @@ import click
 import pytz
 
 from api.database import get_exam, get_roster
-from apps.exam.scramble import scramble
-from apps.write.gen_latex import render_latex
-from cli.utils import exam_name_option, hidden_output_folder_option, delegate_to_server
+from api.scramble import scramble
+from api.gen_latex import render_latex
+from cli.utils import exam_name_option, hidden_output_folder_option
 
 
 @click.command()
 @exam_name_option
 @hidden_output_folder_option
-@delegate_to_server
 def compile_all(name, out):
     """
     Compile individualized PDFs for the specified exam.
