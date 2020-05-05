@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name="examtool",
-    version="0.2",
+    version="0.2.1",
     author="Rahul Arya",
     author_email="rahularya@berkeley.edu",
     long_description=readme,
@@ -19,5 +19,8 @@ setup(
         ]
     },
     python_requires='>=3.6',
-    install_requires=['click', 'pikepdf', 'pytz', 'requests', 'fpdf', 'cryptography', 'pypandoc']
+    install_requires=['cryptography'],
+    extras_require={
+        "cli": ['pikepdf', 'pytz', 'requests', 'fpdf', 'pypandoc']
+    }
 )
