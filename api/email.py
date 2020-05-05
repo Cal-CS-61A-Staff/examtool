@@ -1,8 +1,14 @@
 import os
+from os import getenv
 
-from sendgrid import SendGridAPIClient
+from api.server_delegate import server_only
+
+if getenv("ENV") == "SERVER":
+    # noinspection PyPackageRequirements
+    from sendgrid import SendGridAPIClient
 
 
+@server_only
 def send_email(data):
     try:
         send_email(data)
