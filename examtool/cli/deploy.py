@@ -4,7 +4,7 @@ from json import loads
 import click
 from cryptography.fernet import Fernet
 
-from examtool.api import set_exam, get_exam, set_roster
+from examtool.api.database import set_exam, get_exam, set_roster
 from examtool.cli.utils import exam_name_option
 
 

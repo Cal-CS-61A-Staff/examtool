@@ -3,7 +3,7 @@ from os import getenv
 
 import requests
 
-from examtool.api import get_token, refresh_token
+from examtool.api.auth import get_token, refresh_token
 
 
 def server_only(func):

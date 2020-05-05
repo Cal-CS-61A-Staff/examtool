@@ -1,6 +1,6 @@
 import click
 
-from examtool.cli import check_dupes
+from examtool.cli.check_dupes import check_dupes
 from examtool.cli.compile_all import compile_all
 from examtool.cli.deploy import deploy
 from examtool.cli.download import download

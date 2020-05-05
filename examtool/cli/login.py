@@ -1,6 +1,6 @@
 import click
 
-from examtool.api import refresh_token
+from examtool.api.auth import refresh_token
 
 
 @click.command()

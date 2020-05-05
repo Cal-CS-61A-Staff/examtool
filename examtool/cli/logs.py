@@ -4,7 +4,7 @@ from datetime import datetime
 import click
 import pytz
 
-from examtool.api import get_logs
+from examtool.api.database import get_logs
 from examtool.cli.utils import exam_name_option
 
 

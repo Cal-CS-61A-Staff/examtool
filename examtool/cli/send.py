@@ -3,8 +3,8 @@ import os
 
 import click
 
-from examtool.api import get_roster
-from examtool.api import send_email
+from examtool.api.database import get_roster
+from examtool.api.email import send_email
 from examtool.cli.utils import hidden_target_folder_option, exam_name_option, prettify
 
 
