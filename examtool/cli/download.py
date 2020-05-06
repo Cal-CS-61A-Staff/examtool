@@ -74,8 +74,17 @@ def download(exam, out, name_question, sid_question):
                 pdf.multi_cell(200, 5, txt=line, align="L")
 
             pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
-            for line in response.get(question_id, "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
-                pdf.multi_cell(200, 5, txt=line, align="L")
+            if question.get("type") == "select_all":
+                selected_options = response.get(question_id, [])
+                available_options = [option["text"] for option in question["options"]]
+                for option in sorted(available_options):
+                    if option in selected_options:
+                        pdf.multi_cell(200, 5, txt="X " + option, align="L")
+                    else:
+                        pdf.multi_cell(200, 5, txt="  " + option, align="L")
+            else:
+                for line in response.get(question_id, "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
+                    pdf.multi_cell(200, 5, txt=line, align="L")
 
             total[-1].append(response.get(question_id, ""))
 
