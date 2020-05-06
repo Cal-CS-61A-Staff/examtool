@@ -8,6 +8,6 @@ if getenv("ENV") == "SERVER":
 
 
 @server_only
-def send_email(*, data):
+def send_email(*, exam, data):
     sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
     sg.client.mail.send.post(data)

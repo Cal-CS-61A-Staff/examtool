@@ -69,7 +69,7 @@ def send(exam, target, email):
             ],
         }
 
-        send_email(data=data)
+        send_email(exam=exam, data=data)
 
 
 if __name__ == "__main__":
