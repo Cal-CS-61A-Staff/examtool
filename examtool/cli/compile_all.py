@@ -19,7 +19,7 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option
 @hidden_output_folder_option
 def compile_all(exam, out):
     """
-    Compile individualized PDFs for the specified exam_data.
+    Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
     """
     if not out:

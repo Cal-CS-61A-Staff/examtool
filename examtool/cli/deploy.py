@@ -27,11 +27,11 @@ from examtool.cli.utils import exam_name_option
     prompt=True,
     default=0,
     type=int,
-    help="Specify if you want unregistered students to be able to take the json, with this as the default deadline.",
+    help="Specify if you want unregistered students to be able to take the exam, with this as the default deadline.",
 )
 def deploy(exam, json, roster, default_deadline):
     """
-    Deploy an JSON to the website. You must specify a JSON and associated roster CSV.
+    Deploy an exam to the website. You must specify an exam JSON and associated roster CSV.
     You can deploy the JSON multiple times and the password will remain unchanged.
     """
     json = json.read()
