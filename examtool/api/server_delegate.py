@@ -33,4 +33,4 @@ def call_server(method, kwargs):
     elif resp.status_code == 401:
         raise PermissionError
     else:
-        raise Exception
+        raise Exception(resp.text)
