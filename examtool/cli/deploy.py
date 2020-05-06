@@ -13,16 +13,14 @@ from examtool.cli.utils import exam_name_option
 @click.option(
     "--json",
     prompt=True,
-    default="data/exams/sample_exam.json",
     type=click.File("r"),
-    help="The json JSON you wish to deploy.",
+    help="The exam JSON you wish to deploy.",
 )
 @click.option(
     "--roster",
     prompt=True,
-    default="data/rosters/sample_roster.csv",
     type=click.File("r"),
-    help="The json roster you wish to deploy.",
+    help="The roster CSV you wish to deploy.",
 )
 @click.option(
     "--default-deadline",

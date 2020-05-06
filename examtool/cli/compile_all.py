@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 from datetime import datetime
 from io import BytesIO
 
@@ -24,8 +25,7 @@ def compile_all(exam, out):
     if not out:
         out = "out/latex/" + exam
 
-    if not os.path.exists(out):
-        os.mkdir(out)
+    pathlib.Path(out).mkdir(parents=True, exist_ok=True)
 
     exam_data = get_exam(exam=exam)
     password = exam_data.pop("secret")

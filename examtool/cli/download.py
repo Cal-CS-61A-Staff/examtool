@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import pathlib
 
 import click
 from fpdf import FPDF
@@ -27,8 +28,7 @@ def download(exam, out, name_question, sid_question):
 
     out = out or "out/export/" + exam
 
-    if not os.path.exists(out):
-        os.mkdir(out)
+    pathlib.Path(out).mkdir(parents=True, exist_ok=True)
 
     pdf = FPDF()
     pdf.add_page()
