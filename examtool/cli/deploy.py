@@ -44,7 +44,7 @@ def deploy(exam, json, roster, default_deadline):
 
     try:
         json["secret"] = get_exam(exam=exam)["secret"]
-    except (TypeError, KeyError):
+    except:
         pass
 
     set_exam(exam=exam, json=json)
