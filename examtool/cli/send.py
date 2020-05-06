@@ -25,17 +25,14 @@ def send(exam, target, email):
     if email:
         roster = [email]
     else:
-        for email, deadline in get_roster(exam):
+        for email, deadline in get_roster(exam=exam):
             if deadline:
                 roster.append(email)
 
     if input("Sending email to {} people - confirm? (y/N) ".format(len(roster))).lower() != "y":
         exit(1)
 
-    for email, deadline in roster:
-        if not int(deadline):
-            continue
-
+    for email in roster:
         body = (
             "Hello!\n\n"
             "You have an upcoming exam taking place on exam.cs61a.org. "
@@ -72,7 +69,7 @@ def send(exam, target, email):
             ],
         }
 
-        send_email(data)
+        send_email(data=data)
 
 
 if __name__ == "__main__":

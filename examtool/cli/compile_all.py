@@ -31,7 +31,7 @@ def compile_all(exam, out):
     password = exam_data.pop("secret")
     exam_str = json.dumps(exam_data)
 
-    for email, deadline in get_roster(exam_data):
+    for email, deadline in get_roster(exam=exam):
         if not deadline:
             continue
         exam_data = json.loads(exam_str)
@@ -46,8 +46,6 @@ def compile_all(exam, out):
             exam_data,
             {"emailaddress": email.replace("_", r"\_"), "deadline": deadline_string},
         ) as pdf:
-            os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
             pdf = Pdf.open(BytesIO(pdf))
             pdf.save(
                 os.path.join(
