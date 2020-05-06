@@ -4,9 +4,7 @@ from examtool.api.server_delegate import server_only
 from examtool.api.utils import as_list
 
 if getenv("ENV") == "SERVER":
-    # noinspection PyPackageRequirements
     from google.cloud import firestore
-    # noinspection PyPackageRequirements
     from google.cloud.exceptions import NotFound
 
 

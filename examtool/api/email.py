@@ -4,7 +4,6 @@ from os import getenv
 from examtool.api.server_delegate import server_only
 
 if getenv("ENV") == "SERVER":
-    # noinspection PyPackageRequirements
     from sendgrid import SendGridAPIClient
 
 
