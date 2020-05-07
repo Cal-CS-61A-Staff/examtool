@@ -11,13 +11,14 @@ import pytz
 from examtool.api.database import get_exam, get_roster
 from examtool.api.scramble import scramble
 from examtool.api.gen_latex import render_latex
-from examtool.cli.utils import exam_name_option, hidden_output_folder_option
+from examtool.cli.utils import exam_name_option, hidden_output_folder_option, prettify
 
 
 @click.command()
 @exam_name_option
+@click.option("--subtitle", prompt=True, default="Structure and Interpretation of Computer Programs")
 @hidden_output_folder_option
-def compile_all(exam, out):
+def compile_all(exam, subtitle, out):
     """
     Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
@@ -28,7 +29,8 @@ def compile_all(exam, out):
     pathlib.Path(out).mkdir(parents=True, exist_ok=True)
 
     exam_data = get_exam(exam=exam)
-    password = exam_data.pop("secret")
+    password = exam_data.pop("secret")[:-1]
+    print(password)
     exam_str = json.dumps(exam_data)
 
     for email, deadline in get_roster(exam=exam):
@@ -44,7 +46,12 @@ def compile_all(exam, out):
 
         with render_latex(
             exam_data,
-            {"emailaddress": email.replace("_", r"\_"), "deadline": deadline_string},
+            {
+                "emailaddress": email.replace("_", r"\_"),
+                "deadline": deadline_string,
+                "coursecode": prettify(exam.split("-")[0]),
+                "description": subtitle,
+            },
         ) as pdf:
             pdf = Pdf.open(BytesIO(pdf))
             pdf.save(
