@@ -23,6 +23,8 @@ def scramble_group(group, substitutions, config, depth):
     )
     if depth in config["scramble_groups"]:
         random.shuffle(get_elements(group))
+    if group.get("pick_some"):
+        get_elements(group)[:] = random.sample(get_elements(group), group["pick_some"])
     for element in get_elements(group):
         if element.get("type") == "group":
             scramble_group(element, [*substitutions, group_substitutions], config, depth + 1)

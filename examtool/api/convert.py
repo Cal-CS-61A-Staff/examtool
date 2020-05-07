@@ -122,6 +122,7 @@ def consume_rest_of_group(buff, end):
     elements = []
     started_elements = False
     substitutions = {}
+    pick_some = None
     while True:
         line = buff.pop()
         mode, directive, rest = directive_type(line)
@@ -150,10 +151,21 @@ def consume_rest_of_group(buff, end):
                 "type": "group",
                 **parse("\n".join(group_contents)),
                 "elements": elements,
-                "substitutions": substitutions
+                "substitutions": substitutions,
+                "pick_some": pick_some,
             }
         elif mode == "DEFINE":
             substitutions[directive] = rest.split(" ")
+        elif mode == "CONFIG":
+            if directive == "PICK":
+                if pick_some:
+                    raise SyntaxError("Multiple CONFIG PICK found in GROUP")
+                try:
+                    pick_some = int(rest)
+                except ValueError:
+                    raise SyntaxError("Invalid argument passed to CONFIG PICK")
+            else:
+                raise SyntaxError("Unexpected CONFIG directive in GROUP")
         else:
             raise SyntaxError("Unexpected directive in GROUP")
 

@@ -67,7 +67,7 @@ def download(exam, out, name_question, sid_question):
         total.append([email])
 
         for question_id in q_order:
-            question = q_lookup[question_id]
+            question = q_lookup.get(question_id, {"text": "QUESTION WAS NOT DISPLAYED"})
             pdf.add_page()
             pdf.multi_cell(200, 5, txt="\nQUESTION", align="L")
             for line in question["text"].split("\n"):
