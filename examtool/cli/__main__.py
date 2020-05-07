@@ -8,6 +8,7 @@ from examtool.cli.gradescope_upload import gradescope_upload
 from examtool.cli.login import login
 from examtool.cli.logs import logs
 from examtool.cli.send import send
+from examtool.cli.compile import compile
 
 
 @click.group()
@@ -29,6 +30,7 @@ cli.add_command(gradescope_upload)
 cli.add_command(logs)
 cli.add_command(send)
 cli.add_command(login)
+cli.add_command(compile)
 
 if __name__ == '__main__':
     cli()
