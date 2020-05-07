@@ -1,0 +1,4 @@
+LICENCE
+setup.py
+README.md
+recursive-include examtool *.py *.tex

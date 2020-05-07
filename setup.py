@@ -6,14 +6,14 @@ with open("README.md") as f:
 
 setup(
     name="examtool",
-    version="1.0.13",
+    version="1.0.14",
     author="Rahul Arya",
     author_email="rahularya@berkeley.edu",
     long_description=readme,
     long_description_content_type="text/markdown",
     licence="MIT",
     packages=find_packages(include=["examtool.api", "examtool.cli"]),
-    package_data={"": ["*.tex"]},
+    package_data={"": ["**/*.tex"]},
     include_package_data=True,
     entry_points={"console_scripts": ["examtool=examtool.cli.__main__:cli"]},
     python_requires=">=3.6",
