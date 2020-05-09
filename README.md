@@ -1,7 +1,7 @@
 ## Overview
 This is the CLI for the 61A `examtool`. To edit the various web apps, see the `examtool-web` repo.
 
-To install, run `pip install examtool`. To develop, create a virtualenv and run `pip install -e .`. 
+To install, run `pip install examtool[cli]`. To develop, create a virtualenv and run `pip install -e .`. 
 
 The CLI also requires `pdflatex` to be installed and in your PATH.
 
