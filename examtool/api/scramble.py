@@ -11,7 +11,7 @@ def scramble(email, exam, *, keep_data=False):
             [*substitutions, group_substitutions],
             ["name", "html", "tex", "text"],
         )
-        if depth in config["scramble_groups"]:
+        if depth in config["scramble_groups"] or group.get("scramble"):
             random.shuffle(get_elements(group))
         if group.get("pick_some"):
             get_elements(group)[:] = random.sample(

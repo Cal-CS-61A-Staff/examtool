@@ -123,6 +123,7 @@ def consume_rest_of_group(buff, end):
     started_elements = False
     substitutions = {}
     pick_some = None
+    scramble = False
     while True:
         line = buff.pop()
         mode, directive, rest = directive_type(line)
@@ -153,6 +154,7 @@ def consume_rest_of_group(buff, end):
                 "elements": elements,
                 "substitutions": substitutions,
                 "pick_some": pick_some,
+                "scramble": scramble,
             }
         elif mode == "DEFINE":
             substitutions[directive] = rest.split(" ")
@@ -164,6 +166,8 @@ def consume_rest_of_group(buff, end):
                     pick_some = int(rest)
                 except ValueError:
                     raise SyntaxError("Invalid argument passed to CONFIG PICK")
+            elif directive == "SCRAMBLE":
+                scramble = True
             else:
                 raise SyntaxError("Unexpected CONFIG directive in GROUP")
         else:
