@@ -1,10 +1,8 @@
 import os
-from os import getenv
 
 from examtool.api.server_delegate import server_only
 
-if getenv("ENV") == "SERVER":
-    from sendgrid import SendGridAPIClient
+from sendgrid import SendGridAPIClient
 
 
 @server_only
