@@ -1,5 +1,6 @@
 import click
 
+from examtool.cli.cheaters import cheaters
 from examtool.cli.check_dupes import check_dupes
 from examtool.cli.compile_all import compile_all
 from examtool.cli.deploy import deploy
@@ -7,6 +8,7 @@ from examtool.cli.download import download
 from examtool.cli.gradescope_upload import gradescope_upload
 from examtool.cli.login import login
 from examtool.cli.logs import logs
+from examtool.cli.save_logs import save_logs
 from examtool.cli.send import send
 from examtool.cli.compile import compile
 
@@ -31,6 +33,8 @@ cli.add_command(logs)
 cli.add_command(send)
 cli.add_command(login)
 cli.add_command(compile)
+cli.add_command(cheaters)
+cli.add_command(save_logs)
 
 if __name__ == '__main__':
     cli()
