@@ -4,7 +4,7 @@ import os
 import click
 
 from examtool.api.database import get_roster
-from examtool.api.email import send_email_batch
+from examtool.api.email import send_email_local, get_api_key
 from examtool.cli.utils import hidden_target_folder_option, exam_name_option, prettify
 
 
@@ -29,10 +29,10 @@ def send(exam, target, email):
             if deadline:
                 roster.append(email)
 
+    key = get_api_key(exam=exam)
+
     if input("Sending email to {} people - confirm? (y/N) ".format(len(roster))).lower() != "y":
         exit(1)
-
-    batch = []
 
     for email in roster:
         body = (
@@ -71,14 +71,7 @@ def send(exam, target, email):
             ],
         }
 
-        batch.append(data)
-
-        if len(batch) > 100:
-            send_email_batch(exam=exam, data_list=batch)
-            batch = []
-
-    if batch:
-        send_email_batch(exam=exam, data_list=batch)
+        send_email_local(key, data)
 
 
 if __name__ == "__main__":
