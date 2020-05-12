@@ -9,3 +9,5 @@ creds.json
 /out/
 /dist/
 /build/
+__pycache__/
+examtool.egg-info/
