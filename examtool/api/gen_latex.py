@@ -70,7 +70,7 @@ def generate(exam):
 
 
 @contextmanager
-def render_latex(exam, subs=None):
+def render_latex(exam, subs=None, *, do_twice=False):
     latex = generate(exam)
     latex = re.sub(r"\\includegraphics(\[.*\])?{(http.*/(.+))}", r"\\immediate\\write18{wget -N \2}\n\\includegraphics\1{\3}", latex)
     if subs:
@@ -82,7 +82,8 @@ def render_latex(exam, subs=None):
         f.write(latex)
     old = os.getcwd()
     os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
-    # os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
+    if do_twice:
+        os.system("cd temp && pdflatex --shell-escape -interaction=nonstopmode out.tex")
     with open("temp/out.pdf", "rb") as f:
         os.chdir(old)
         yield f.read()

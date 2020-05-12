@@ -18,7 +18,8 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option, pr
 @exam_name_option
 @click.option("--subtitle", prompt=True, default="Structure and Interpretation of Computer Programs")
 @hidden_output_folder_option
-def compile_all(exam, subtitle, out):
+@click.option("--do_twice", help="Run the compile twice for each student to fix weird rendering bugs.")
+def compile_all(exam, subtitle, out, do_twice):
     """
     Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
@@ -52,6 +53,7 @@ def compile_all(exam, subtitle, out):
                 "coursecode": prettify(exam.split("-")[0]),
                 "description": subtitle,
             },
+            do_twice=do_twice,
         ) as pdf:
             pdf = Pdf.open(BytesIO(pdf))
             pdf.save(
