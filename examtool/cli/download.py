@@ -31,21 +31,26 @@ def download(exam, out, name_question, sid_question):
 
     pathlib.Path(out).mkdir(parents=True, exist_ok=True)
 
+    template_questions = list(extract_questions(json.loads(exam_json)))
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Courier", size=16)
     pdf.multi_cell(200, 20, txt=exam, align="L")
 
     pdf.set_font("Courier", size=9)
-    for question in extract_questions(json.loads(exam_json)):
+    for question in template_questions:
         pdf.add_page()
         pdf.multi_cell(200, 5, txt="\nQUESTION", align="L")
         for line in question["text"].split("\n"):
             pdf.multi_cell(200, 5, txt=line, align="L")
         pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
-    pdf.output(os.path.join(out, "OUTLINE.pdf"))
+        if question.get("type") == "select_all":
+            available_options = [option["text"] for option in question["options"]]
+            for option in sorted(available_options):
+                pdf.multi_cell(200, 5, txt="[ ] " + option, align="L")
 
-    q_order = [question["id"] for question in extract_questions(json.loads(exam_json))]
+    pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
     total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam_json))]]
 
@@ -67,8 +72,7 @@ def download(exam, out, name_question, sid_question):
 
         total.append([email])
 
-        for question_id in q_order:
-            question = q_lookup.get(question_id, {"text": "QUESTION WAS NOT DISPLAYED"})
+        for question in template_questions:
             pdf.add_page()
             pdf.multi_cell(200, 5, txt="\nQUESTION", align="L")
             for line in question["text"].split("\n"):
@@ -76,18 +80,18 @@ def download(exam, out, name_question, sid_question):
 
             pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
             if question.get("type") == "select_all":
-                selected_options = response.get(question_id, [])
+                selected_options = response.get(question["id"], [])
                 available_options = [option["text"] for option in question["options"]]
                 for option in sorted(available_options):
                     if option in selected_options:
-                        pdf.multi_cell(200, 5, txt="X " + option, align="L")
+                        pdf.multi_cell(200, 5, txt="[X] " + option, align="L")
                     else:
-                        pdf.multi_cell(200, 5, txt="  " + option, align="L")
+                        pdf.multi_cell(200, 5, txt="[ ] " + option, align="L")
             else:
-                for line in response.get(question_id, "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
+                for line in response.get(question["id"], "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
                     pdf.multi_cell(200, 5, txt=line, align="L")
 
-            total[-1].append(response.get(question_id, ""))
+            total[-1].append(response.get(question["id"], ""))
 
         pdf.output(os.path.join(out, "{}.pdf".format(email)))
 
