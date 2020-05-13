@@ -28,15 +28,19 @@ def directive_type(line):
     return tokens[1], tokens[2] if len(tokens) > 2 else "", tokens[3] if len(tokens) > 3 else ""
 
 
-def get_points(line):
+def process_title(line):
     tokens = line.split(" ")
     point_sec = tokens[-1]
+    has_fixed = tokens and tokens[0] == "FIXED"
+    if has_fixed:
+        tokens = tokens[1:]
+        line = " ".join(tokens)
     if not point_sec or point_sec[0] != "[" or point_sec[-1] != "]":
-        return line, None
+        return line, has_fixed, None
     try:
-        return " ".join(tokens[:-1]), float(point_sec[1:-1])
+        return " ".join(tokens[:-1]), has_fixed, float(point_sec[1:-1])
     except ValueError:
-        return line, None
+        return line, has_fixed, None
 
 
 def rand_id():
@@ -157,18 +161,20 @@ def consume_rest_of_group(buff, end):
                 group_contents.append(line)
         elif mode == "BEGIN" and directive == "QUESTION":
             started_elements = True
-            title, points = get_points(rest)
+            title, is_fixed, points = process_title(rest)
             if title:
                 raise SyntaxError("Unexpected arguments passed in BEGIN QUESTION directive")
             question = consume_rest_of_question(buff)
             question["points"] = points
+            question["fixed"] = is_fixed
             elements.append(question)
         elif mode == "BEGIN" and directive == "GROUP":
             started_elements = True
-            title, points = get_points(rest)
+            title, is_fixed, points = process_title(rest)
             group = consume_rest_of_group(buff, "GROUP")
             group["name"] = title
             group["points"] = points
+            group["fixed"] = is_fixed
             elements.append(group)
         elif mode == "END" and directive == end:
             return {
@@ -218,13 +224,16 @@ def convert(text):
                 else:
                     raise SyntaxError("Unexpected CONFIG directive {}".format(directive))
             elif mode == "BEGIN" and directive in ["GROUP", "PUBLIC"]:
-                title, points = get_points(rest)
+                title, is_fixed, points = process_title(rest)
                 group = consume_rest_of_group(buff, directive)
                 group["name"] = title
                 group["points"] = points
+                group["fixed"] = is_fixed
                 if directive == "PUBLIC":
                     if public:
                         raise SyntaxError("Only one PUBLIC block is allowed")
+                    if is_fixed:
+                        raise SyntaxError("PUBLIC blocks are already FIXED")
                     public = group
                 else:
                     groups.append(group)
