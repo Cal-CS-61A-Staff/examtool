@@ -8,10 +8,11 @@ from fpdf import FPDF
 
 from examtool.api.database import get_exam, get_submissions
 from examtool.api.extract_questions import extract_questions
+from examtool.api.scramble import scramble
 from examtool.cli.utils import exam_name_option, hidden_output_folder_option
 
 
-def write_exam(response, exam, template_questions, name_question, sid_question, compact):
+def write_exam(response, exam, template_questions, student_questions, name_question, sid_question, compact):
     pdf = FPDF()
     pdf.add_page()
 
@@ -24,6 +25,8 @@ def write_exam(response, exam, template_questions, name_question, sid_question, 
 
     line_count = 0
     force_new = True
+
+    student_question_lookup = {q["id"]: q for q in student_questions}
 
     for question in template_questions:
         if line_count > 30 or force_new or not compact:
@@ -41,15 +44,22 @@ def write_exam(response, exam, template_questions, name_question, sid_question, 
         if question.get("type") not in ["multiple_choice", "select_all"]:
             force_new = True
 
-        if question.get("type") == "select_all":
+        if question.get("type") in ["multiple_choice", "select_all"]:
             selected_options = response.get(question["id"], [])
-            available_options = [option["text"] for option in question["options"]]
-            for option in sorted(available_options):
-                if option in selected_options:
-                    pdf.multi_cell(200, 5, txt="[X] " + option, align="L")
-                else:
-                    pdf.multi_cell(200, 5, txt="[ ] " + option, align="L")
-            line_count += 1
+            if question.get("type") == "multiple_choice" and not isinstance(selected_options, list):
+                selected_options = [selected_options]
+            available_options = sorted([option["text"] for option in question["options"]])
+            if question["id"] not in student_question_lookup:
+                pdf.multi_cell(200, 5, txt="STUDENT DID NOT RECEIVE QUESTION", align="L")
+                line_count += 1
+            else:
+                student_options = sorted([option["text"] for option in student_question_lookup[question["id"]]["options"]])
+                for template, option in zip(available_options, student_options):
+                    if option in selected_options:
+                        pdf.multi_cell(200, 5, txt="[X] " + template, align="L")
+                    else:
+                        pdf.multi_cell(200, 5, txt="[ ] " + template, align="L")
+                line_count += 1
         else:
             for line in response.get(question["id"], "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
                 pdf.multi_cell(200, 5, txt=line, align="L")
@@ -80,7 +90,7 @@ def download(exam, out, name_question, sid_question, compact):
 
     template_questions = list(extract_questions(json.loads(exam_json)))
 
-    pdf = write_exam({}, exam, template_questions, name_question, sid_question, compact)
+    pdf = write_exam({}, exam, template_questions, template_questions, name_question, sid_question, compact)
     pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
     total = [["Email"] + [question["text"] for question in extract_questions(json.loads(exam_json))]]
@@ -93,7 +103,9 @@ def download(exam, out, name_question, sid_question, compact):
         for question in template_questions:
             total[-1].append(response.get(question["id"], ""))
 
-        pdf = write_exam(response, exam, template_questions, name_question, sid_question, compact)
+        student_questions = list(extract_questions(scramble(email, json.loads(exam_json))))
+
+        pdf = write_exam(response, exam, template_questions, student_questions, name_question, sid_question, compact)
         pdf.output(os.path.join(out, "{}.pdf".format(email)))
 
     with open(os.path.join(out, "summary.csv"), "w") as f:
