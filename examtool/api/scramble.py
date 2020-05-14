@@ -31,7 +31,7 @@ def scramble(email, exam, *, keep_data=False):
                 )
         if (
             group.get("pick_some") == 1
-            and not group["name"].trim()
+            and not group["name"].strip()
             and group["points"] is None
         ):
             text = group["text"]
