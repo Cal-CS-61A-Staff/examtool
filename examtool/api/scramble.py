@@ -39,6 +39,8 @@ def scramble(email, exam, *, keep_data=False):
             group.clear()
             group.update(element)
             group["text"] = text + "\n" + group["text"]
+            group["html"] = text + "\n" + group["html"]
+            group["tex"] = text + "\n" + group["tex"]
 
     def scramble_question(question, substitutions, config):
         question_substitutions = select(question["substitutions"])
