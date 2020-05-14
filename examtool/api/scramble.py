@@ -6,7 +6,9 @@ def scramble(email, exam, *, keep_data=False):
 
     def scramble_group(group, substitutions, config, depth):
         group_substitutions = select(group["substitutions"])
-        group_substitutions.update(select_no_replace(group.get("substitutions_match", [])))
+        group_substitutions.update(
+            select_no_replace(group.get("substitutions_match", []))
+        )
         substitute(
             group,
             [*substitutions, group_substitutions],
@@ -27,10 +29,22 @@ def scramble(email, exam, *, keep_data=False):
                 scramble_question(
                     element, [*substitutions, group_substitutions], config
                 )
+        if (
+            group.get("pick_some") == 1
+            and not group["title"].trim()
+            and group["points"] is None
+        ):
+            text = group["text"]
+            element = get_elements(group)[0]
+            group.clear()
+            group.update(element)
+            group["text"] = text + "\n" + group["text"]
 
     def scramble_question(question, substitutions, config):
         question_substitutions = select(question["substitutions"])
-        question_substitutions.update(select_no_replace(question.get("substitutions_match", [])))
+        question_substitutions.update(
+            select_no_replace(question.get("substitutions_match", []))
+        )
         substitute(
             question, [question_substitutions, *substitutions], ["html", "tex", "text"]
         )
@@ -92,6 +106,7 @@ def select(substitutions):
     for k, v in sorted(substitutions.items()):
         out[k] = random.choice(v)
     return out
+
 
 def select_no_replace(substitutions_match):
     out = {}
