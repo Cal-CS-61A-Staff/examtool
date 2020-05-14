@@ -7,7 +7,10 @@ def extract_questions(exam):
 
 def group_questions(group):
     out = _group_questions(group)
-    first = next(out)
+    try:
+        first = next(out)
+    except StopIteration:
+        return
     first["text"] = group["name"] + "\n\n" + group["text"] + "\n\n" + first["text"]
     yield first
     yield from out
