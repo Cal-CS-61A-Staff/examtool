@@ -356,13 +356,17 @@ def pandoc(target):
 
     explore(target)
 
-    DELIMITER = "\n\nxxxDELIMITERxxx\n\n"
+    DELIMITER = """\n\n```separation```\n\n"""
+
+    html_convert = lambda x: pypandoc.convert_text(x, "html5", "md", ["--mathjax"])
+    tex_convert = lambda x: pypandoc.convert_text(x, "latex", "md")
+
     transpile_target = lambda t: DELIMITER.join(x.text for x in to_parse if x.type == t)
 
-    html = pypandoc.convert_text(transpile_target("html"), "html5", "md", ["--mathjax"]).split(DELIMITER.strip())
-    tex = pypandoc.convert_text(transpile_target("tex"), "latex", "md").split(DELIMITER.strip())
+    html = html_convert(transpile_target("html")).split(html_convert(DELIMITER))
+    tex = tex_convert(transpile_target("tex")).split(tex_convert(DELIMITER))
 
-    assert len(to_parse) == len(html) + len(tex)
+    assert len(to_parse) == len(html) + len(tex), (len(to_parse), len(html), len(tex))
 
     for x, h in zip(filter(lambda x: x.type == "html", to_parse), html):
         x.html = h
