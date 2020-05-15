@@ -1,5 +1,5 @@
 def boolstring(bool):
-    return "Matches solution." if bool else "Does not match solution."
+    return "Matches solution." if bool else "May not match solution."
 
 
 def grade(question, responses, dispatch=None):
