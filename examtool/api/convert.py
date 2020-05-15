@@ -54,11 +54,20 @@ def rand_id():
     return "".join(random.choices(string.ascii_uppercase, k=32))
 
 
+class ToParse():
+    def __init__(self, text, type):
+        self.text = text
+        self.type = type
+
+        self.html = None
+        self.tex = None
+
+
 def parse(text):
     return {
-        "html": pypandoc.convert_text(text, "html5", "md", ["--mathjax"]),
-        "tex": pypandoc.convert_text(text, "latex", "md"),
         "text": text,
+        "html": ToParse(text, "html"),
+        "tex": ToParse(text, "tex"),
     }
 
 
@@ -277,7 +286,7 @@ def consume_rest_of_group(buff, end):
             raise SyntaxError("Unexpected directive in GROUP")
 
 
-def convert(text):
+def _convert(text):
     buff = LineBuffer(text)
     groups = []
     public = None
@@ -332,5 +341,45 @@ def convert(text):
     }
 
 
+def pandoc(target):
+    to_parse = []
+
+    def explore(pos):
+        if isinstance(pos, ToParse):
+            to_parse.append(pos)
+        elif isinstance(pos, dict):
+            for child in pos.values():
+                explore(child)
+        elif isinstance(pos, list):
+            for child in pos:
+                explore(child)
+
+    explore(target)
+
+    DELIMITER = "\n\nxxxDELIMITERxxx\n\n"
+    transpile_target = lambda t: DELIMITER.join(x.text for x in to_parse if x.type == t)
+
+    html = pypandoc.convert_text(transpile_target("html"), "html5", "md", ["--mathjax"]).split(DELIMITER.strip())
+    tex = pypandoc.convert_text(transpile_target("tex"), "latex", "md").split(DELIMITER.strip())
+
+    assert len(to_parse) == len(html) + len(tex)
+
+    for x, h in zip(filter(lambda x: x.type == "html", to_parse), html):
+        x.html = h
+
+    for x, t in zip(filter(lambda x: x.type == "tex", to_parse), tex):
+        x.tex = t
+
+    def pandoc_dump(obj):
+        assert isinstance(obj, ToParse)
+        return obj.__dict__[obj.type]
+
+    return json.dumps(target, default=pandoc_dump)
+
+
+def convert(text):
+    return json.loads(convert_str(text))
+
+
 def convert_str(text):
-    return json.dumps(convert(text))
+    return pandoc(_convert(text))
