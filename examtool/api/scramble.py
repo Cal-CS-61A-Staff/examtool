@@ -33,10 +33,11 @@ def scramble(email, exam, *, keep_data=False):
             group.get("pick_some") == 1
             and not group["name"].strip()
             and group["points"] is None
-            and depth != 1
         ):
             text, html, tex = group["text"], group["html"], group["tex"]
             element = get_elements(group)[0]
+            if element.get("type") != "group" and depth == 1:
+                return
             group.clear()
             group.update(element)
             group["text"] = text + "\n" + group["text"]
