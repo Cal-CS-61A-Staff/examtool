@@ -8,6 +8,7 @@ from fpdf import FPDF
 
 from examtool.api.database import get_exam, get_submissions
 from examtool.api.extract_questions import extract_questions
+from examtool.api.grade import grade
 from examtool.api.scramble import scramble
 from examtool.cli.utils import exam_name_option, hidden_output_folder_option
 
@@ -23,6 +24,9 @@ def write_exam(response, exam, template_questions, student_questions, name_quest
 
     pdf.set_font("Courier", size=9)
 
+    def out(text):
+        pdf.multi_cell(200, 5, txt=text, align="L")
+
     line_count = 0
     force_new = True
 
@@ -34,12 +38,12 @@ def write_exam(response, exam, template_questions, student_questions, name_quest
             line_count = 0
             force_new = False
 
-        pdf.multi_cell(200, 5, txt="\nQUESTION", align="L")
+        out("\nQUESTION")
         for line in question["text"].split("\n"):
-            pdf.multi_cell(200, 5, txt=line, align="L")
+            out(line)
             line_count += 1
 
-        pdf.multi_cell(200, 5, txt="\nANSWER", align="L")
+        out("\nANSWER")
 
         if question.get("type") not in ["multiple_choice", "select_all"]:
             force_new = True
@@ -50,20 +54,24 @@ def write_exam(response, exam, template_questions, student_questions, name_quest
                 selected_options = [selected_options]
             available_options = sorted([option["text"] for option in question["options"]])
             if question["id"] not in student_question_lookup:
-                pdf.multi_cell(200, 5, txt="STUDENT DID NOT RECEIVE QUESTION", align="L")
+                out("STUDENT DID NOT RECEIVE QUESTION")
                 line_count += 1
             else:
                 student_options = sorted([option["text"] for option in student_question_lookup[question["id"]]["options"]])
                 for template, option in zip(available_options, student_options):
                     if option in selected_options:
-                        pdf.multi_cell(200, 5, txt="[X] " + template, align="L")
+                        out("[X] " + template)
                     else:
-                        pdf.multi_cell(200, 5, txt="[ ] " + template, align="L")
+                        out("[ ] " + template)
                 line_count += 1
         else:
             for line in response.get(question["id"], "").encode('latin-1', 'replace').decode('latin-1').split("\n"):
-                pdf.multi_cell(200, 5, txt=line, align="L")
+                out(line)
                 line_count += 1
+
+        out("\nAUTOGRADER")
+        if question["id"] in student_question_lookup and question["id"] in response:
+            out(grade(student_question_lookup[question["id"]], response))
 
     return pdf
 
@@ -103,7 +111,7 @@ def download(exam, out, name_question, sid_question, compact):
         for question in template_questions:
             total[-1].append(response.get(question["id"], ""))
 
-        student_questions = list(extract_questions(scramble(email, json.loads(exam_json))))
+        student_questions = list(extract_questions(scramble(email, json.loads(exam_json), keep_data=True)))
 
         pdf = write_exam(response, exam, template_questions, student_questions, name_question, sid_question, compact)
         pdf.output(os.path.join(out, "{}.pdf".format(email)))

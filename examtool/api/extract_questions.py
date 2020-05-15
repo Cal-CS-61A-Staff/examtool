@@ -1,5 +1,5 @@
 def extract_questions(exam):
-    if "public" in exam:
+    if exam.get("public"):
         yield from group_questions(exam["public"])
     for group in exam["groups"]:
         yield from group_questions(group)

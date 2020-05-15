@@ -44,26 +44,12 @@
 
 % Macros for use in assignments and exams
 \def\q#1#2{{\bf\item (#1 points)\quad #2}}
-\def\subq#1{{\bf\item (#1 pt)}}
+\def\subq#1{\item \textbf{(#1 pt)}}
 \def\mp{{\it Multiple choice}: }
 \newcommand{\eat}[1]{\ignorespaces}
 \newcommand{\todo}[1]{ {\color{blue} TODO: #1} }
 \def\truefalse{Circle \emph{True} or \emph{False}: }
 \def\qt#1#2#3{{\bf\item (#1 points, #2 minutes)\quad #3}}
-
-\def\dotag{1}
-\ifx\dotag\showtags%
-\newcommand{\questiontag}[1]{%
-    \ifnum\pdfmatch{\OUTOFSCOPE}{#1}=1%
-        {\it\color{red}{(At least one of these is out of Scope: #1)}}
-    \else
-        {\it\color{blue}{(All are in Scope: #1)}}
-    \fi
-}
-\else%
-\newcommand{\questiontag}[1]{}
-\fi
-
 
 % Define formatting
 \def\asis{\obeylines\obeyspaces}
@@ -106,10 +92,10 @@
 % Multiple choice questions
 % Gradescope template for multiple choice questions
 \newcommand{\mcqb}{{\Large$\Circle$}}
-\newcommand{\mcqs}{\textcolor{red}{\Large$\CIRCLE$}}
+\newcommand{\mcqs}{\textcolor{blue}{\Large$\CIRCLE$}}
 % Gradescope template for multiple option questions
 \newcommand{\moqb}{{\Large$\Square$}}
-\newcommand{\moqs}{\textcolor{red}{\Large$\blacksquare$}}
+\newcommand{\moqs}{\textcolor{blue}{\Large$\blacksquare$}}
 % Define new semantic choice type
 \newlist{choices}{itemize}{1}
 \setlist[choices]{label*=\mcqb, leftmargin=*}
@@ -401,16 +387,10 @@ to\hsize{\hfil\box\@tempboxa\hfil}
 
 %%% Showing solutions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\def\doshow{1}
-\ifx\doshow\showsolution%
-\newcommand{\solution}[1]{{\color{red}#1}}
+\newcommand{\solution}[1]{{\bf \color{blue}#1}}
+\newcommand{\note}[1]{{\color{blue}#1}}
 \newcommand{\solutioncircle}[1]{{\color{red}#1}}
 \newcommand{\solutionimage}[2]{#2}  % First arg is question, second is solution
-\else%
-\newcommand\solution[1]{} % excludes
-\newcommand{\solutioncircle}[1]{#1} % don't color text but still display it
-\newcommand{\solutionimage}[2]{#1} % First arg is question, second is solution
-\fi
 
 %%%%%%%% PANDOC STUFF %%%%%%%%%%%%%%%%
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex

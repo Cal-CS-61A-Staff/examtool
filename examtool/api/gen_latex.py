@@ -1,5 +1,6 @@
 import os
 import re
+from collections import defaultdict
 from contextlib import contextmanager
 
 
@@ -26,7 +27,7 @@ def generate(exam):
         write(r"{ \bf " + group["name"] + "}")
         write("\n")
         write(group["tex"])
-        write(r"\begin{enumerate}")
+        write(r"\begin{enumerate}[font=\bfseries]")
         for element in group["elements"]:
             if element["type"] == "group":
                 write_group(element, False)
@@ -40,22 +41,42 @@ def generate(exam):
         if question["points"] is not None:
             write(fr"\subq{{{question['points']}}}")
         else:
-            write(r"{\bf \item \, \hspace{-1em} \ }")
+            write(r"\item \, \hspace{-1em} \, ")
         write(question["tex"])
-        if question["type"] in ["short_answer", "short_code_answer"]:
+        solution = question.get("solution", defaultdict())
+        if solution.get("solution"):
+            write(r"\setlength{\fboxsep}{1em}")
+            write(r"\fbox{\parbox{0.8\textwidth}{\solution{")
+            write(solution["solution"]["tex"])
+            write(r"}}}")
+        elif question["type"] in ["short_answer", "short_code_answer"]:
             write(r"\framebox[0.8\textwidth][c]{\parbox[c][30px]{0.5\textwidth}{}}")
-        if question["type"] in ["long_answer", "long_code_answer"]:
+        elif question["type"] in ["long_answer", "long_code_answer"]:
             write(rf"\framebox[0.8\textwidth][c]{{\parbox[c][{30 * (question['options'])}px]{{0.5\textwidth}}{{}}}}")
+
+        correct = solution.get("options", [])
+
         if question["type"] in ["select_all"]:
             write(r"\begin{options}")
             for option in question["options"]:
-                write(r"\option " + option["tex"])
+                if option["text"] in correct:
+                    write(r"\option[\moqs] " + option["tex"])
+                else:
+                    write(r"\option[\moqb] " + option["tex"])
             write(r"\end{options}")
         if question["type"] in ["multiple_choice"]:
             write(r"\begin{choices}")
             for option in question["options"]:
-                write(r"\choice " + option["tex"])
+                if option["text"] in correct:
+                    write(r"\option[\mcqs] " + option["tex"])
+                else:
+                    write(r"\option[\mcqb] " + option["tex"])
             write(r"\end{choices}")
+        if solution.get("note"):
+            write(r"\\\\ \note{")
+            write(solution["note"]["tex"])
+            write(r"}")
+        write(r"\vspace{10px}")
 
     with rel_open("tex/prefix.tex") as f:
         write(f.read())
