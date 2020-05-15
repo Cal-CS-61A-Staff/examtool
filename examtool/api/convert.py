@@ -5,6 +5,9 @@ import string
 
 import pypandoc
 
+html_convert = lambda x: pypandoc.convert_text(x, "html5", "md", ["--mathjax"])
+tex_convert = lambda x: pypandoc.convert_text(x, "latex", "md")
+
 
 class LineBuffer:
     def __init__(self, text):
@@ -23,8 +26,8 @@ class LineBuffer:
 
 def parse_directive(line):
     if not any(
-        line.startswith(f"# {x} ")
-        for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE"]
+            line.startswith(f"# {x} ")
+            for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE"]
     ):
         return None, None, None
     tokens = line.split(" ", 3)
@@ -66,8 +69,8 @@ class ToParse():
 def parse(text):
     return {
         "text": text,
-        "html": ToParse(text, "html"),
-        "tex": ToParse(text, "tex"),
+        "html": html_convert(text),  # ToParse(text, "html"),
+        "tex": tex_convert(text)  # ToParse(text, "tex"),
     }
 
 
@@ -106,13 +109,13 @@ def parse_input_lines(lines):
             is_fixed = False
             if rest.startswith(fixed):
                 is_fixed = True
-                rest = rest[len(fixed) :]
+                rest = rest[len(fixed):]
 
             correct = "CORRECT "
             is_correct = False
             if rest.startswith(correct):
                 is_correct = True
-                rest = rest[len(correct) :]
+                rest = rest[len(correct):]
 
             if is_correct:
                 correct_options.append(rest)
@@ -125,10 +128,10 @@ def parse_input_lines(lines):
             correct_options,
         )
     elif directive in (
-        "SHORT_ANSWER",
-        "SHORT_CODE_ANSWER",
-        "LONG_ANSWER",
-        "LONG_CODE_ANSWER",
+            "SHORT_ANSWER",
+            "SHORT_CODE_ANSWER",
+            "LONG_ANSWER",
+            "LONG_CODE_ANSWER",
     ):
         if len(lines) > 1:
             raise SyntaxError(
@@ -356,17 +359,14 @@ def pandoc(target):
 
     explore(target)
 
-    DELIMITER = """\n\n```separation```\n\n"""
-
-    html_convert = lambda x: pypandoc.convert_text(x, "html5", "md", ["--mathjax"])
-    tex_convert = lambda x: pypandoc.convert_text(x, "latex", "md")
+    DELIMITER = """\n\nDELIMITER\n\n"""
 
     transpile_target = lambda t: DELIMITER.join(x.text for x in to_parse if x.type == t)
 
     html = html_convert(transpile_target("html")).split(html_convert(DELIMITER))
     tex = tex_convert(transpile_target("tex")).split(tex_convert(DELIMITER))
 
-    assert len(to_parse) == len(html) + len(tex), (len(to_parse), len(html), len(tex))
+    assert not html or not tex or (len(to_parse) == len(html) + len(tex), (len(to_parse), len(html), len(tex)))
 
     for x, h in zip(filter(lambda x: x.type == "html", to_parse), html):
         x.html = h
