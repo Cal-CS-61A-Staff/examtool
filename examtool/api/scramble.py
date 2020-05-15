@@ -34,13 +34,13 @@ def scramble(email, exam, *, keep_data=False):
             and not group["name"].strip()
             and group["points"] is None
         ):
-            text = group["text"]
+            text, html, tex = group["text"], group["html"], group["tex"]
             element = get_elements(group)[0]
             group.clear()
             group.update(element)
             group["text"] = text + "\n" + group["text"]
-            group["html"] = text + "\n" + group["html"]
-            group["tex"] = text + "\n" + group["tex"]
+            group["html"] = html + "\n" + group["html"]
+            group["tex"] = tex + "\n" + group["tex"]
 
     def scramble_question(question, substitutions, config):
         question_substitutions = select(question["substitutions"])
