@@ -40,7 +40,7 @@ def write_exam(
     student_question_lookup = {q["id"]: q for q in student_questions}
 
     for question in template_questions:
-        if line_count > 30 or force_new or not compact:
+        if line_count > 20 or force_new or not compact:
             pdf.add_page()
             line_count = 0
             force_new = False
@@ -64,9 +64,14 @@ def write_exam(
             available_options = sorted(
                 [option["text"] for option in question["options"]]
             )
+            line_count += 1
             if question["id"] not in student_question_lookup:
-                out("STUDENT DID NOT RECEIVE QUESTION")
-                line_count += 1
+                student_options = sorted(
+                    [
+                        option["text"]
+                        for option in question["options"]
+                    ]
+                )
             else:
                 student_options = sorted(
                     [
@@ -74,12 +79,11 @@ def write_exam(
                         for option in student_question_lookup[question["id"]]["options"]
                     ]
                 )
-                for template, option in zip(available_options, student_options):
-                    if option in selected_options:
-                        out("[X] " + template)
-                    else:
-                        out("[ ] " + template)
-                line_count += 1
+            for template, option in zip(available_options, student_options):
+                if option in selected_options:
+                    out("[X] " + template)
+                else:
+                    out("[ ] " + template)
         else:
             for line in (
                 response.get(question["id"], "")
@@ -93,6 +97,10 @@ def write_exam(
         out("\nAUTOGRADER")
         if question["id"] in student_question_lookup and question["id"] in response:
             out(grade(student_question_lookup[question["id"]], response, dispatch))
+        elif question["id"] not in student_question_lookup:
+            out("STUDENT DID NOT RECEIVE QUESTION")
+        else:
+            out("")
 
     return pdf
 
