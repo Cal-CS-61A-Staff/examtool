@@ -16,6 +16,10 @@ def grade(question, responses, dispatch=None):
     if question["type"] == "multiple_choice":
         return boolstring(response in question["solution"]["options"])
     elif question["type"] == "select_all":
-        return boolstring(sorted(response) == sorted(question["solution"]["options"]))
+        if "options" in question["solution"]:
+            return boolstring(sorted(response) == sorted(question["solution"]["options"]))
     else:
-        return boolstring(response == question["solution"]["solution"]["text"])
+        if "solution" in question["solution"]:
+            return boolstring(response == question["solution"]["solution"]["text"])
+
+    return "Instant autograder unavailable."
