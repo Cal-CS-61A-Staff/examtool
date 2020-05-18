@@ -63,20 +63,21 @@ def scramble(email, exam, *, keep_data=False):
 
         if keep_data and "solution" in question:
             solution = question["solution"]
-            if "solution" in solution:
+            if solution.get("solution"):
                 substitute(
-                    solution, [question_substitutions, *substitutions], ["solution"]
+                    solution["solution"], [question_substitutions, *substitutions], ["html", "tex", "text"], store=False
                 )
             else:
                 substitute(
-                    question["options"],
+                    solution["options"],
                     [question_substitutions, *substitutions],
-                    range(len(question["options"])),
+                    range(len(solution["options"])),
+                    store=False,
                 )
         else:
             question.pop("solution", None)
 
-    def substitute(target: dict, list_substitutions, attrs):
+    def substitute(target: dict, list_substitutions, attrs, *, store=True):
         merged = {}
         for substitutions in list_substitutions:
             merged = {**merged, **substitutions}
@@ -84,10 +85,11 @@ def scramble(email, exam, *, keep_data=False):
                 for k, v in substitutions.items():
                     target[attr] = target[attr].replace(k, v)
                     target[attr] = target[attr].replace(k.title(), v.title())
-        if keep_data:
-            target["substitutions"] = merged
-        else:
-            target.pop("substitutions", None)
+        if store:
+            if keep_data:
+                target["substitutions"] = merged
+            else:
+                target.pop("substitutions", None)
 
     global_substitutions = select(exam["substitutions"])
     global_substitutions.update(select_no_replace(exam.get("substitutions_match", [])))
