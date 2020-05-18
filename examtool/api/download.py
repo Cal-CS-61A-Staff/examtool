@@ -18,7 +18,6 @@ def write_exam(
     student_questions,
     name_question,
     sid_question,
-    compact,
     dispatch,
 ):
     pdf = FPDF()
@@ -34,21 +33,12 @@ def write_exam(
     def out(text):
         pdf.multi_cell(200, 5, txt=text, align="L")
 
-    line_count = 0
-    force_new = True
-
     student_question_lookup = {q["id"]: q for q in student_questions}
 
     for question in template_questions:
-        if line_count > 20 or force_new or not compact:
-            pdf.add_page()
-            line_count = 0
-            force_new = False
-
         out("\nQUESTION")
         for line in question["text"].split("\n"):
             out(line)
-            line_count += 1
 
         out("\nANSWER")
 
@@ -64,7 +54,6 @@ def write_exam(
             available_options = sorted(
                 [option["text"] for option in question["options"]]
             )
-            line_count += 1
             if question["id"] not in student_question_lookup:
                 student_options = sorted(
                     [
@@ -92,7 +81,6 @@ def write_exam(
                 .split("\n")
             ):
                 out(line)
-                line_count += 1
 
         out("\nAUTOGRADER")
         if question["id"] in student_question_lookup and question["id"] in response:
@@ -105,7 +93,7 @@ def write_exam(
     return pdf
 
 
-def download(exam, out, name_question, sid_question, compact, dispatch=None):
+def download(exam, out, name_question, sid_question, dispatch=None):
     exam_json = get_exam(exam=exam)
     exam_json.pop("secret")
     exam_json = json.dumps(exam_json)
@@ -123,7 +111,6 @@ def download(exam, out, name_question, sid_question, compact, dispatch=None):
         template_questions,
         name_question,
         sid_question,
-        compact,
         dispatch,
     )
     pdf.output(os.path.join(out, "OUTLINE.pdf"))
@@ -152,7 +139,6 @@ def download(exam, out, name_question, sid_question, compact, dispatch=None):
             student_questions,
             name_question,
             sid_question,
-            compact,
             dispatch,
         )
         pdf.output(os.path.join(out, "{}.pdf".format(email)))
