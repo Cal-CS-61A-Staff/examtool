@@ -70,7 +70,7 @@ def compile(exam, json, md, seed, subtitle, with_solutions, json_out, out):
 
     if json_out:
         print("Dumping json...")
-        dump(exam_data, json_out)
+        dump(exam_data, json_out, indent=4, sort_keys=True)
         return
 
     print("Rendering exam...")
