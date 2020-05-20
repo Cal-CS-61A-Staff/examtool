@@ -20,7 +20,9 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option, pr
 @click.option("--subtitle", prompt=True, default="Structure and Interpretation of Computer Programs")
 @hidden_output_folder_option
 @click.option("--do-twice", is_flag=True, help="Run the compile twice for each student to fix weird rendering bugs.")
-def compile_all(exam, subtitle, out, do_twice):
+@click.option("--email", help="The email address of a particular student.")
+@click.option("--deadline", default=None, help="Generates exam regardless of if student is in roster with the set deadline.")
+def compile_all(exam, subtitle, out, do_twice, email, deadline):
     """
     Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
@@ -34,8 +36,19 @@ def compile_all(exam, subtitle, out, do_twice):
     password = exam_data.pop("secret")[:-1]
     print(password)
     exam_str = json.dumps(exam_data)
+    
+    roster = get_roster(exam=exam)
 
-    for email, deadline in get_roster(exam=exam):
+    if email:
+        roster = [line_info for line_info in roster if line_info[0] == email]
+        if len(roster) == 0:
+            if deadline:
+                roster = [(email, deadline)]
+            else:
+                raise ValueError("Email does not exist in the roster!")
+
+
+    for email, deadline in roster:
         if not deadline:
             continue
         exam_data = json.loads(exam_str)
