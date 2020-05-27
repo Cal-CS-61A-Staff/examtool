@@ -1,0 +1,3 @@
+[submodule "fullGSapi"]
+	path = examtool/api/fullGSapi
+	url = git@github.com:61c-teach/fullGSapi.git

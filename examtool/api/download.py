@@ -92,17 +92,9 @@ def write_exam(
 
     return pdf
 
-
-def download(exam, out, name_question, sid_question, dispatch=None):
-    exam_json = get_exam(exam=exam)
-    exam_json.pop("secret")
-    exam_json = json.dumps(exam_json)
-
+def export(template_questions, student_responses, total, exam, out, name_question, sid_question, dispatch=None):
     out = out or "out/export/" + exam
-
     pathlib.Path(out).mkdir(parents=True, exist_ok=True)
-
-    template_questions = list(extract_questions(json.loads(exam_json)))
 
     pdf = write_exam(
         {},
@@ -115,28 +107,12 @@ def download(exam, out, name_question, sid_question, dispatch=None):
     )
     pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
-    total = [
-        ["Email"]
-        + [question["text"] for question in extract_questions(json.loads(exam_json))]
-    ]
-
-    for email, response in get_submissions(exam=exam):
-        if 1 < len(response) < 10:
-            print(email, response)
-
-        total.append([email])
-        for question in template_questions:
-            total[-1].append(response.get(question["id"], ""))
-
-        student_questions = list(
-            extract_questions(scramble(email, json.loads(exam_json), keep_data=True))
-        )
-
+    for email, data in student_responses.items():
         pdf = write_exam(
-            response,
+            data.get("response"),
             exam,
             template_questions,
-            student_questions,
+            data.get("student_questions"),
             name_question,
             sid_question,
             dispatch,
@@ -147,3 +123,41 @@ def download(exam, out, name_question, sid_question, dispatch=None):
         writer = csv.writer(f)
         for row in total:
             writer.writerow(row)
+
+def download(exam):
+    exam_json = get_exam(exam=exam)
+    exam_json.pop("secret")
+    exam_json = json.dumps(exam_json)
+
+    template_questions = list(extract_questions(json.loads(exam_json)))
+
+    total = [
+        ["Email"]
+        + [question["text"] for question in extract_questions(json.loads(exam_json))]
+    ]
+
+    exam_json_str = json.loads(exam_json)
+
+    email_to_data_map = {}
+
+    for email, response in get_submissions(exam=exam):
+        if 1 < len(response) < 10:
+            print(email, response)
+
+        total.append([email])
+        for question in template_questions:
+            total[-1].append(response.get(question["id"], ""))
+
+        student_questions = list(
+            extract_questions(scramble(email, exam_json_str, keep_data=True))
+        )
+
+        email_to_data_map[email] = {
+            "student_questions": student_questions,
+            "responses": response
+        }
+    
+    return (template_questions, email_to_data_map, total)
+
+
+    
