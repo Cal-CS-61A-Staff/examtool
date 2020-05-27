@@ -109,7 +109,7 @@ def export(template_questions, student_responses, total, exam, out, name_questio
 
     for email, data in student_responses.items():
         pdf = write_exam(
-            data.get("response"),
+            data.get("responses"),
             exam,
             template_questions,
             data.get("student_questions"),

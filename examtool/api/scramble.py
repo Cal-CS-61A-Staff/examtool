@@ -68,12 +68,14 @@ def scramble(email, exam, *, keep_data=False):
                     solution["solution"], [question_substitutions, *substitutions], ["html", "tex", "text"], store=False
                 )
             else:
-                substitute(
-                    solution["options"],
-                    [question_substitutions, *substitutions],
-                    range(len(solution["options"])),
-                    store=False,
-                )
+                options = solution["options"]
+                if options:
+                    substitute(
+                        options,
+                        [question_substitutions, *substitutions],
+                        range(len(options)),
+                        store=False,
+                    )
         else:
             question.pop("solution", None)
 
