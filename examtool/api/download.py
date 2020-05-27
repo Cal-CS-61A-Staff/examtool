@@ -36,7 +36,7 @@ def write_exam(
     student_question_lookup = {q["id"]: q for q in student_questions}
 
     for question in template_questions:
-        pdf.page()
+        pdf.add_page()
         out("\nQUESTION")
         for line in question["text"].split("\n"):
             out(line)
