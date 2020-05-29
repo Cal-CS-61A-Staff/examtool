@@ -6,6 +6,7 @@ GRADESCOPE_URL = "https://www.gradescope.com/api/v1/courses/{}/assignments/{}/su
 class APIClient:
     def __init__(self):
         self.session = requests.Session()
+        self.token = None
 
     def log_in(self, email, password):
         login_url = "https://www.gradescope.com/api/v1/user_session"
@@ -18,6 +19,9 @@ class APIClient:
         print(r.status_code, r.json())
 
         self.token = r.json()['token']
+
+    def is_logged_in(self):
+        return self.token is not None
 
     def post(self, *args, **kwargs):
         return self.session.post(*args, **kwargs)

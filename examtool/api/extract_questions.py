@@ -1,6 +1,8 @@
-def extract_questions(exam):
-    if exam.get("public"):
-        yield from group_questions(exam["public"])
+from examtool.api.scramble import is_compresable_group
+
+def extract_questions(exam, extract_public: bool=True):
+    if extract_public:
+        yield from extract_public(exam)
     for group in exam["groups"]:
         yield from group_questions(group)
 
@@ -23,3 +25,15 @@ def _group_questions(group):
             yield from out
         else:
             yield element
+
+def extract_public(exam):
+    if exam.get("public"):
+        yield from group_questions(exam["public"])
+
+def extract_groups(group):
+    for g in group["groups"]:
+        if is_compresable_group(g):
+            for g2 in g["groups"]:
+                yield g2
+        else:
+            yield g

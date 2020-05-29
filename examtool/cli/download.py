@@ -16,7 +16,7 @@ def download(exam, out, name_question, sid_question, compact):
     Exams are downloaded as PDFs into a target folder - specify `out` to redirect the folder.
     An `OUTLINE.pdf` is also generated for Gradescope, as is a `summary.csv` for analytics or autograding.
     """
-    template_questions, email_to_data_map, total = examtool.api.download.download(exam)
+    exam_json, template_questions, email_to_data_map, total = examtool.api.download.download(exam)
     examtool.api.download.export(template_questions, email_to_data_map, total, exam, out, name_question, sid_question, compact)
 
 

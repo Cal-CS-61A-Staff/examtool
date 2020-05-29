@@ -125,7 +125,7 @@ def export(template_questions, student_responses, total, exam, out, name_questio
         for row in total:
             writer.writerow(row)
 
-def download(exam):
+def download(exam, emails_to_download: [str]=None, debug: bool=False):
     exam_json = get_exam(exam=exam)
     exam_json.pop("secret")
     exam_json = json.dumps(exam_json)
@@ -137,12 +137,13 @@ def download(exam):
         + [question["text"] for question in extract_questions(json.loads(exam_json))]
     ]
 
-    exam_json_str = json.loads(exam_json)
-
     email_to_data_map = {}
 
     for email, response in get_submissions(exam=exam):
-        if 1 < len(response) < 10:
+        if emails_to_download is not None and email not in emails_to_download:
+            continue
+
+        if debug and 1 < len(response) < 10:
             print(email, response)
 
         total.append([email])
@@ -150,7 +151,7 @@ def download(exam):
             total[-1].append(response.get(question["id"], ""))
 
         student_questions = list(
-            extract_questions(scramble(email, exam_json_str, keep_data=True))
+            extract_questions(scramble(email, json.loads(exam_json), keep_data=True))
         )
 
         email_to_data_map[email] = {
@@ -158,7 +159,7 @@ def download(exam):
             "responses": response
         }
     
-    return (template_questions, email_to_data_map, total)
+    return (json.loads(exam_json), template_questions, email_to_data_map, total)
 
 
     
