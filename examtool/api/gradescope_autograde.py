@@ -1,7 +1,7 @@
 import examtool.api.download
 from examtool.api.gradescope_upload import APIClient
 from examtool.api.fullGSapi.client import GradescopeClient
-from examtool.api.fullGSapi.assignment_grader import GS_Crop_info, GS_Outline, GS_assignment_Grader, GS_Outline_Question, GS_Question, GroupTypes
+from examtool.api.fullGSapi.assignment_grader import GS_Crop_info, GS_Outline, GS_assignment_Grader, GS_Outline_Question, GS_Question, GroupTypes, RubricItem, QuestionRubric
 from examtool.api.extract_questions import extract_groups, extract_questions, extract_public
 import os
 import time
@@ -73,7 +73,7 @@ class GradescopeGrader:
         print("Grouping and grading questions...")
         for qid, question in gs_outline.questions_iterator():
             print(f"Processing question {qid}...")
-            self.process_question(qid, question, email_to_responses_map, email_to_question_sub_id)
+            self.process_question(qid, question, email_to_data_map, email_to_question_sub_id)
 
 
     def export_exam(self, template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id):
@@ -116,74 +116,285 @@ class GradescopeGrader:
             q_type = GroupTypes.non_grouped
         return q.set_group_type(q_type)
     
-    def process_question(self, num_id: str, question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict):
+    def process_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         # TODO Group questions
-        groups = self.group_question(question, num_id, email_to_responses_map, email_to_question_sub_id_map)
+        groups = self.group_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         if groups:
+            # Group answers
+            self.add_groups_on_gradescope(question, groups)
             # TODO Add rubrics
-            self.add_rubric(question, email_to_responses_map, email_to_question_sub_id_map)
+            rubric = self.add_rubric(question, groups)
             # in here, add check to see if qid is equal to either name or sid q id so we do not group those.
             # TODO Grade questions
-            self.grade_question(question, email_to_responses_map, email_to_question_sub_id_map)
+            self.grade_question(question, rubric, groups)
     
-    def group_question(self, num_id: str, question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict):
-        while not question.is_grouping_ready():
-            timeout = 5
-            print(f"Question grouping not ready! Retrying in {timeout} seconds.")
-            time.sleep(timeout)
+    def group_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         qtype = question.data.get("type")
         if qtype == "multiple_choice":
-            return self.group_mc_question(question, email_to_responses_map, email_to_question_sub_id_map)
+            return self.group_mc_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         elif qtype == "select_all":
-            return self.group_sel_all_question(question, email_to_responses_map, email_to_question_sub_id_map)
+            return self.group_sel_all_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         elif qtype in ["short_answer", "short_code_answer"]:
-            return self.group_short_ans_question(question, email_to_responses_map, email_to_question_sub_id_map)
+            return self.group_short_ans_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         elif qtype in ["long_answer", "long_code_answer"]:
-            return self.group_long_ans_question(question, email_to_responses_map, email_to_question_sub_id_map)
+            return self.group_long_ans_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         else:
             print(f"Unsupported question type {qtype} for question {question.data}!")
             return None
 
 
-    def group_mc_question(self, num_id: str, question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict):
+    def group_mc_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         data = question.data
         # This is a list of correct options from left (top) to right (bottom)
         correct_seq = []
+        seq_name = []
         solution_options = data.get("solution", {}).get("options", [])
-        for option in data.get("options", []):
+        all_options = data.get("options", [])
+        for option in all_options:
             correct_seq.append(option in solution_options)
+            seq_name.append(option)
 
+        # Add blank option
+        correct_seq.append(None)
+        seq_name.append("Blank")
+        # Add student did not receive this question
+        correct_seq.append(None)
+        seq_name.append("Student did not receive this question")
+
+        g_data = {}
         groups = {
             "correct_seq": correct_seq,
-            # groups is a list of tuples where index:
-            # 0 is the name of the group
-            # 1 is the selected sequence (list of true false for selected) and
-            # 2 is the list of submission id's which selected that.
-            "groups": [],
+            "seq_names": seq_name,
+            # groups is a dict of tuples where index:
+            # key is the name of the group
+            # "sids" is the list of submission id's which selected that
+            # "sel_seq" is the selected sequence (list of true false for selected)
+            "groups": g_data,
         }
 
-        for email, submission_ids in email_to_question_sub_id_map.items():
-            pass
+        def list_to_str(l):
+            s = ""
+            for item in l:
+                s += str(int(item))
+            return s
 
+        eqid = question.data["id"]
+        for email, data in email_to_data_map.items():
+            responses = data.get("responses", {})
+            response = responses.get(eqid)
+            selection = [False] * len(correct_seq)
+            if response is None:
+                selection[-1] = True
+            elif response is []:
+                selection[-2] = True
+            else:
+                for i, option in enumerate(all_options):
+                    selection[i] = option in response
+
+            s = list_to_str(selection)
+            sid = email_to_question_sub_id_map[email][qid]
+            if s not in g_data:
+                g_data[s] = {
+                    "sids": [],
+                    "sel_seq": selection
+                }
+            g_data[s]["sids"].append(sid)
         return groups
 
-    def group_sel_all_question(self, num_id: str, question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict):
-        return self.group_mc_question(question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict)
+    def group_sel_all_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
+        return self.group_mc_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
 
-    def group_short_ans_question(self, num_id: str, question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict):
-        pass
+    def group_short_ans_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
+        data = question.data
+        # This is a list of correct options from left (top) to right (bottom)
+        solution = data.get("solution", {}).get("solution")
+        if not solution:
+            return
+        correct_seq = [True]
+        seq_name = [solution]
 
-    def group_long_ans_question(self, num_id: str, question: GS_Question, email_to_responses_map: dict, email_to_question_sub_id_map: dict):
+        # Add blank option
+        correct_seq.append(None)
+        seq_name.append("Blank")
+        # Add student did not receive this question
+        correct_seq.append(None)
+        seq_name.append("Student did not receive this question")
+
+        g_data = {}
+        groups = {
+            "correct_seq": correct_seq,
+            "seq_names": seq_name,
+            # groups is a dict of tuples where index:
+            # key is the name of the group
+            # "sids" is the list of submission id's which selected that
+            # "sel_seq" is the selected sequence (list of true false for selected)
+            "groups": g_data,
+        }
+
+        eqid = question.data["id"]
+        for email, data in email_to_data_map.items():
+            responses = data.get("responses", {})
+            response = responses.get(eqid)
+            selection = [False] * len(correct_seq)
+            if response is None:
+                selection[-1] = True
+            elif response is []:
+                selection[-2] = True
+            else:
+                if response == solution:
+                    selection[0] = True
+
+            sid = email_to_question_sub_id_map[email][qid]
+            if response not in g_data:
+                g_data[response] = {
+                    "sids": [],
+                    "sel_seq": selection
+                }
+            g_data[response]["sids"].append(sid)
+        return groups
+
+    def group_long_ans_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         """
-        We will not be grouping long ans question so we will skip and return.
+        We will only be grouping students who did not get the question or left it blank.
         """
-        return None
+        data = question.data
+        # This is a list of correct options from left (top) to right (bottom)
+        correct_seq = [True]
+        seq_name = ["Correct"]
+
+        # Add blank option
+        correct_seq.append(None)
+        seq_name.append("Blank")
+        # Add student did not receive this question
+        correct_seq.append(None)
+        seq_name.append("Student did not receive this question")
+
+        g_data = {
+            "Blank": {
+                "sids": [],
+                "sel_seq": [False, True, False],
+            },
+            "Student did not receive this question": {
+                "sids": [],
+                "sel_seq": [False, False, True]
+            },
+        }
+        groups = {
+            "correct_seq": correct_seq,
+            "seq_names": seq_name,
+            # groups is a dict of tuples where index:
+            # key is the name of the group
+            # "sids" is the list of submission id's which selected that
+            # "sel_seq" is the selected sequence (list of true false for selected)
+            "groups": g_data,
+        }
+
+        eqid = question.data["id"]
+        for email, data in email_to_data_map.items():
+            responses = data.get("responses", {})
+            response = responses.get(eqid)
+            if not response:
+                sid = email_to_question_sub_id_map[email][qid]
+                if response is None:
+                    g_data["Blank"]["sids"].append(sid)
+                elif response is []:
+                    g_data["Student did not receive this question"]["sids"].append(sid)            
+        return groups
+
+    def add_groups_on_gradescope(self, question: GS_Question, groups: dict):
+        """
+        Groups is a list of name, submission_id, selected answers
+        """
+        failed_groups_names = []
+        while not question.is_grouping_ready():
+            timeout = 5
+            print(f"Question grouping not ready! Retrying in {timeout} seconds.")
+            time.sleep(timeout)
+        gdata = groups["groups"]
+        max_attempts = 5
+        attempt = 1
+        for g_name, data in gdata.items():
+            sids = data["sids"]
+            while attempt < max_attempts:
+                group_id = question.add_group(g_name)
+                if group_id is None:
+                    
+                    attempt += 1
+                    continue
+                if not question.group_submissions(group_id, sids):
+                    print(f"Failed to group submissions to {group_id}. SIDS: {sids}")
+                    failed_groups_names.append(g_name)
+                break
+            else:
+                print(f"Failed to create group for {g_name}! ({groups})")
+                failed_groups_names.append(g_name)
+        
+        # This is to decrease down stream errors
+        for failed_group_name in failed_groups_names:
+            gdata.pop(failed_group_name, None)
     
-    def add_rubric(self, question):
-        pass
+    def add_rubric(self, question: GS_Question, groups: dict) -> QuestionRubric:
+        rubric = QuestionRubric(question)
+        rubric.delete_existing_rubric()
+        seq_names = groups["seq_names"]
+        correct_seq = groups["correct_seq"]
+        rubric_scores = self.get_rubric_scores(question, seq_names, correct_seq)
+        for name, score in zip(seq_names, rubric_scores):
+            rubric_item = RubricItem(description=name, weight=score)
+            rubric.add_rubric_item(rubric_item)
+        return rubric
 
-    def grade_question(self, question):
-        pass
+    def get_rubric_scores(self,question: GS_Question, seq_names: [str], correct_seq: [bool]):
+        qtype = question.data.get("type")
+        if qtype == "multiple_choice":
+            return self.get_mc_rubric_scores(question, seq_names, correct_seq)
+        elif qtype == "select_all":
+            return self.get_sel_all_rubric_scores(question, seq_names, correct_seq)
+        elif qtype in ["short_answer", "short_code_answer"]:
+            return self.get_short_ans_rubric_scores(question, seq_names, correct_seq)
+        elif qtype in ["long_answer", "long_code_answer"]:
+            return self.get_long_ans_rubric_scores(question, seq_names, correct_seq)
+        else:
+            print(f"Unsupported question type {qtype} for question {question.data}!")
+            return None
+
+    def get_mc_rubric_scores(self, question: GS_Question, group_names, correct_seq):
+        scores = []
+        num_correct = sum([1 for correct in correct_seq if correct])
+        num_choices = sum([1 for correct in correct_seq if correct is not None])
+        points = question.data.get("points", 1)
+        if points is None:
+            points = 1
+        rubric_weight = num_correct / num_choices * points
+        for correct in correct_seq:
+            if correct is None:
+                scores.append(0)
+            else:
+                if correct:
+                    scores.append(rubric_weight)
+                else:
+                    scores.append(-rubric_weight)
+        return scores
+
+
+    def get_sel_all_rubric_scores(self, question: GS_Question, group_names, correct_seq):
+        return self.get_mc_rubric_scores(question, group_names, correct_seq)
+
+    def get_short_ans_rubric_scores(self, question: GS_Question, group_names, correct_seq):
+        return self.get_mc_rubric_scores(question, group_names, correct_seq)
+
+    def get_long_ans_rubric_scores(self, question: GS_Question, group_names, correct_seq):
+        return [0] * len(correct_seq)
+
+    def grade_question(self, question: GS_Question, rubric: QuestionRubric, groups: dict):
+        for group_name, group_data in groups["groups"].items():
+            group_sel = group_data["sel_seq"]
+            group_sids = group_data["sids"]
+            if len(group_sids) > 0:
+                if not rubric.grade(group_sids[0], group_sel, save_group=True):
+                    print(f"Failed to grade group {group_name}!")
+
+
 
 class ExamtoolOutline:
     name_region = GS_Crop_info(1, 2.4, 11.4, 100, 18.8)
