@@ -16,7 +16,7 @@ class APIClient:
             "password": password
         }
         r = self.post(login_url, data=form_data)
-        print(r.status_code, r.json())
+        #print(r.status_code, r.json())
 
         self.token = r.json()['token']
 
@@ -35,14 +35,17 @@ class APIClient:
         num_attempts = 0
         while num_attempts < 5:  # Control how many times to retry
             r = self.post(url, data=form_data, headers=request_headers, files=files)
-            if r.status_code == 200:
+            if r.ok:
                 return
-            if r.status_code != 200:
-                num_attempts += 1
+            num_attempts += 1
 
         # Report error
-        print('Issue uploading to Gradescope. Gradescope error output below:', student_email)
-        error_lines = json.loads(r._content)['errors']
-        for line in error_lines:
-            print(line)
+        print(f'Issue uploading to Gradescope ({r.status_code}). Gradescope error output below:', student_email)
+        content = json.loads(r._content)
+        error_lines = content.get('errors')
+        if error_lines is None:
+            print(content)
+        else:
+            for line in error_lines:
+                print(line)
         print("Upload URL:", url)

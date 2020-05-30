@@ -64,9 +64,7 @@ class GradescopeGrader:
         # Now that we have the assignment and outline pdf, lets generate the outline.
         print("Generating the examtool outline...")
         examtool_outline = ExamtoolOutline(grader, exam_json)
-        import IPython
-        IPython.embed()
-        return
+
         # Finally we need to upload and sync the outline.
         print("Uploading the generated outline...")
         self.upload_outline(grader, examtool_outline)
@@ -76,19 +74,19 @@ class GradescopeGrader:
         self.upload_student_submissions(out, gs_class_id, gs_assignment_id)
 
         # TODO For each question, group, add rubric and grade
-        print("Setting the grade type for grouping for each question....")
+        print("Setting the grade type for grouping for each question...")
         gs_outline = examtool_outline.get_gs_outline()
         self.set_group_types(gs_outline)
 
         # Fetch the student email to question id map
-        print("Fetching the student email to submission id's mapping....")
-        email_to_question_sub_id = grader.student_email_to_submission_ids()
+        print("Fetching the student email to submission id's mapping...")
+        email_to_question_sub_id = grader.email_to_qids()
 
         # Finally we can process each question
         print("Grouping and grading questions...")
         for qid, question in gs_outline.questions_iterator():
             print(f"Processing question {qid}...")
-            self.process_question(qid, question, email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
+            self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
 
     def export_exam(self, template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id):
@@ -105,7 +103,7 @@ class GradescopeGrader:
         return self.gs_client.get_assignment_grader(gs_class_id, assignment_id)
 
     def upload_outline(self, grader: GS_assignment_Grader, examtool_outline: "ExamtoolOutline"):
-        outline = grader.update_outline(examtool_outline.get_gs_outline().json())
+        outline = grader.update_outline(examtool_outline.get_gs_outline())
         if not outline:
             raise ValueError("Failed to upload or get the outline")
         examtool_outline.merge_gs_outline_ids(outline)
@@ -127,8 +125,8 @@ class GradescopeGrader:
         q_type = GroupTypes.complex
         if question_type in ["select_all", "multiple_choice"]:
             q_type = GroupTypes.mc
-        if question_type in ["long_answer", "long_code_answer"]:
-            q_type = GroupTypes.non_grouped
+        # if question_type in ["long_answer", "long_code_answer"]:
+        #     q_type = GroupTypes.non_grouped
         return q.set_group_type(q_type)
     
     def process_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict, name_question_id: str, sid_question_id: str):
@@ -141,10 +139,10 @@ class GradescopeGrader:
         if groups:
             # Group answers
             print(f"Syncing groups on gradescope...")
-            self.add_groups_on_gradescope(question, groups)
+            self.add_groups_on_gradescope(qid, question, groups)
             # TODO Add rubrics
             print(f"Adding rubric items...")
-            rubric = self.add_rubric(question, groups)
+            rubric = self.add_rubric(qid, question, groups)
             # in here, add check to see if qid is equal to either name or sid q id so we do not group those.
             # TODO Grade questions
             print(f"Applying grades for each group...")
@@ -173,7 +171,65 @@ class GradescopeGrader:
         correct_seq = []
         seq_name = []
         solution_options = data.get("solution", {}).get("options", [])
-        all_options = data.get("options", [])
+        all_options = [option.get("text") for option in data.get("options", [])]
+        for option in all_options:
+            correct_seq.append(option in solution_options)
+            seq_name.append(option)
+
+        # Add blank option
+        correct_seq.append(None)
+        seq_name.append("Blank")
+        # Add student did not receive this question
+        correct_seq.append(None)
+        seq_name.append("Student did not receive this question")
+
+        g_data = {}
+        groups = {
+            "correct_seq": correct_seq,
+            "seq_names": seq_name,
+            # groups is a dict of tuples where index:
+            # key is the name of the group
+            # "sids" is the list of submission id's which selected that
+            # "sel_seq" is the selected sequence (list of true false for selected)
+            "groups": g_data,
+        }
+
+        def list_to_str(l):
+            s = ""
+            for item in l:
+                s += str(int(item))
+            return s
+
+        eqid = question.data["id"]
+        for email, data in email_to_data_map.items():
+            responses = data.get("responses", {})
+            response = responses.get(eqid)
+            selection = [False] * len(correct_seq)
+            if response is None:
+                selection[-1] = True
+            elif response is []:
+                selection[-2] = True
+            else:
+                for i, option in enumerate(all_options):
+                    selection[i] = option == response
+
+            s = list_to_str(selection)
+            sid = email_to_question_sub_id_map[email][qid]
+            if s not in g_data:
+                g_data[s] = {
+                    "sids": [],
+                    "sel_seq": selection
+                }
+            g_data[s]["sids"].append(sid)
+        return groups
+
+    def group_sel_all_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
+        data = question.data
+        # This is a list of correct options from left (top) to right (bottom)
+        correct_seq = []
+        seq_name = []
+        solution_options = data.get("solution", {}).get("options", [])
+        all_options = [option.get("text") for option in data.get("options", [])]
         for option in all_options:
             correct_seq.append(option in solution_options)
             seq_name.append(option)
@@ -225,15 +281,12 @@ class GradescopeGrader:
             g_data[s]["sids"].append(sid)
         return groups
 
-    def group_sel_all_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
-        return self.group_mc_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
-
     def group_short_ans_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         data = question.data
         # This is a list of correct options from left (top) to right (bottom)
-        solution = data.get("solution", {}).get("solution")
+        solution = data.get("solution", {}).get("solution", {}).get("text")
         if not solution:
-            return
+            print(f"[{qid}]: No solution defined for this question! Only grouping blank and std did not receive.")
         correct_seq = [True]
         seq_name = [solution]
 
@@ -325,14 +378,14 @@ class GradescopeGrader:
                     g_data["Student did not receive this question"]["sids"].append(sid)            
         return groups
 
-    def add_groups_on_gradescope(self, question: GS_Question, groups: dict):
+    def add_groups_on_gradescope(self, qid: str, question: GS_Question, groups: dict):
         """
         Groups is a list of name, submission_id, selected answers
         """
         failed_groups_names = []
         while not question.is_grouping_ready():
             timeout = 5
-            print(f"Question grouping not ready! Retrying in {timeout} seconds.")
+            print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds.")
             time.sleep(timeout)
         gdata = groups["groups"]
         max_attempts = 5
@@ -342,11 +395,11 @@ class GradescopeGrader:
             while attempt < max_attempts:
                 group_id = question.add_group(g_name)
                 if group_id is None:
-                    
                     attempt += 1
+                    time.sleep(1)
                     continue
                 if not question.group_submissions(group_id, sids):
-                    print(f"Failed to group submissions to {group_id}. SIDS: {sids}")
+                    print(f"[{qid}]: Failed to group submissions to {group_id}. SIDS: {sids}")
                     failed_groups_names.append(g_name)
                 break
             else:
@@ -357,9 +410,10 @@ class GradescopeGrader:
         for failed_group_name in failed_groups_names:
             gdata.pop(failed_group_name, None)
     
-    def add_rubric(self, question: GS_Question, groups: dict) -> QuestionRubric:
+    def add_rubric(self, qid: str, question: GS_Question, groups: dict) -> QuestionRubric:
         rubric = QuestionRubric(question)
-        rubric.delete_existing_rubric()
+        if not rubric.delete_existing_rubric():
+            print(f"[{qid}] Failed to remove the existing rubric!")
         seq_names = groups["seq_names"]
         correct_seq = groups["correct_seq"]
         rubric_scores = self.get_rubric_scores(question, seq_names, correct_seq)
@@ -452,16 +506,15 @@ class ExamtoolOutline:
         qid = 1
         if exam_json.get("public"):
             prev_page = 1
-            g = GS_Outline_Question(grader, None, [self.get_gs_crop_info(page, exam_json.get("public"))], title="Public", weight=0)
-            questions.append(g)
+            pg = GS_Outline_Question(grader, None, [self.get_gs_crop_info(page, exam_json.get("public"))], title="Public", weight=0)
             sqid = 1
             for question in extract_public(exam_json):
-                g.add_child(self.question_to_gso_question(grader, page, question))
+                pg.add_child(self.question_to_gso_question(grader, page, question))
                 gs_number_to_exam_q[f"{qid}.{sqid}"] = question
                 sqid += 1
                 page += 1
             if page != prev_page:
-                questions.append(g)
+                questions.append(pg)
                 qid += 1
 
         for group in extract_groups(exam_json):
@@ -469,7 +522,7 @@ class ExamtoolOutline:
             weight = group.get("points", "0")
             if not weight:
                 weight = 0
-            g = GS_Outline_Question(grader, None, self.get_gs_crop_info(page, group), title=group.get("name", ""), weight=weight)
+            g = GS_Outline_Question(grader, None, [self.get_gs_crop_info(page, group)], title=group.get("name", ""), weight=weight)
             sqid = 1
             for question in extract_questions(group, extract_public_bool=False, top_level=False):
                 g.add_child(self.question_to_gso_question(grader, page, question))
@@ -489,7 +542,7 @@ class ExamtoolOutline:
     def merge_gs_outline_ids(self, outline: GS_Outline):
         self.gs_outline = outline
         for qnum, q in outline.questions_iterator():
-            q.data = self.gs_number_to_exam_q["qnum"]
+            q.data = self.gs_number_to_exam_q[qnum]
     
     def questions_iterator(self):
         yield from self.gs_outline.questions_iterator()
