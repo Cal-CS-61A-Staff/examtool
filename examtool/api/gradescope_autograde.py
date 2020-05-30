@@ -79,7 +79,7 @@ class GradescopeGrader:
         print("Grouping and grading questions...")
         for qid, question in gs_outline.questions_iterator():
             print(f"Processing question {qid}...")
-            self.process_question(qid, question, email_to_data_map, email_to_question_sub_id)
+            self.process_question(qid, question, email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
 
     def export_exam(self, template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id):
@@ -122,8 +122,11 @@ class GradescopeGrader:
             q_type = GroupTypes.non_grouped
         return q.set_group_type(q_type)
     
-    def process_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
+    def process_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict, name_question_id: str, sid_question_id: str):
         # TODO Group questions
+        if question.data.get("id") in [name_question_id, sid_question_id]:
+            print("Skipping grouping of an id question!")
+            return
         print(f"Grouping...")
         groups = self.group_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         if groups:
