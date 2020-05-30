@@ -1,10 +1,13 @@
 from examtool.api.scramble import is_compresable_group
 
-def extract_questions(exam, extract_public: bool=True):
-    if extract_public:
+def extract_questions(exam, extract_public_bool: bool=True, top_level: bool=True):
+    if extract_public_bool:
         yield from extract_public(exam)
-    for group in exam["groups"]:
-        yield from group_questions(group)
+    if top_level:
+        for group in exam["groups"]:
+            yield from group_questions(group)
+    else:
+        yield from group_questions(exam)
 
 
 def group_questions(group):

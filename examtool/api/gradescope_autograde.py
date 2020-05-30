@@ -8,6 +8,7 @@ import time
 
 class GradescopeGrader:
     def __init__(self, email: str=None, password: str=None, gs_client: GradescopeClient=None, gs_api_client: APIClient=None):
+        print(f"Setting up the Gradescope Grader...")
         if gs_client is None:
             gs_client = GradescopeClient()
         if gs_api_client is None:
@@ -21,9 +22,12 @@ class GradescopeGrader:
 
         if email and password:
             if not gs_client.is_logged_in():
+                print(f"Logging in to the normal Gradescope API...")
                 self.gs_client.log_in(email, password)
             if not self.gs_api_client.is_logged_in():
+                print(f"Logging into the full Gradescope API...")
                 self.gs_api_client.log_in(email, password)
+        print(f"Finished setting up the Gradescope Grader")
 
     def main(
         self, 
@@ -50,6 +54,9 @@ class GradescopeGrader:
             gs_assignment_id = self.create_assignment(gs_class_id, gs_assignment_title, outline_path)
             if not gs_assignment_id:
                 raise ValueError("Did not receive a valid assignment id. Did assignment creation fail?")
+            print(f"Created gradescope assignment with id {gs_assignment_id}!")
+        else:
+            print(f"Using assignment ({gs_assignment_id}) which was already created!")
 
         # Lets now get the assignment grader
         grader: GS_assignment_Grader = self.get_assignment_grader(gs_class_id, gs_assignment_id)
@@ -57,7 +64,9 @@ class GradescopeGrader:
         # Now that we have the assignment and outline pdf, lets generate the outline.
         print("Generating the examtool outline...")
         examtool_outline = ExamtoolOutline(grader, exam_json)
-
+        import IPython
+        IPython.embed()
+        return
         # Finally we need to upload and sync the outline.
         print("Uploading the generated outline...")
         self.upload_outline(grader, examtool_outline)
@@ -462,7 +471,7 @@ class ExamtoolOutline:
                 weight = 0
             g = GS_Outline_Question(grader, None, self.get_gs_crop_info(page, group), title=group.get("name", ""), weight=weight)
             sqid = 1
-            for question in extract_questions(group, extract_public=False):
+            for question in extract_questions(group, extract_public_bool=False, top_level=False):
                 g.add_child(self.question_to_gso_question(grader, page, question))
                 gs_number_to_exam_q[f"{qid}.{sqid}"] = question
                 sqid += 1
