@@ -37,12 +37,15 @@ class GradescopeGrader:
         ):
 
         out = out or "out/export/" + exam
+        print("Download exams data...")
         exam_json, template_questions, email_to_data_map, total = examtool.api.download.download(exam)
 
+        print("Exporting exam pdfs...")
         self.export_exam(template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id)
 
         # Create assignment if one is not already created.
         if gs_assignment_id is None:
+            print("Creating the gradescope assignment...")
             outline_path = f"{out}/OUTLINE.pdf"
             gs_assignment_id = self.create_assignment(gs_class_id, gs_assignment_title, outline_path)
             if not gs_assignment_id:
@@ -52,12 +55,15 @@ class GradescopeGrader:
         grader: GS_assignment_Grader = self.get_assignment_grader(gs_class_id, gs_assignment_id)
         
         # Now that we have the assignment and outline pdf, lets generate the outline.
+        print("Generating the examtool outline...")
         examtool_outline = ExamtoolOutline(grader, exam_json)
 
         # Finally we need to upload and sync the outline.
+        print("Uploading the generated outline...")
         self.upload_outline(grader, examtool_outline)
 
         # We can now upload the student submission since we have an outline
+        print("Uploading student submissions...")
         self.upload_student_submissions(out, gs_class_id, gs_assignment_id)
 
         # TODO For each question, group, add rubric and grade
@@ -118,15 +124,21 @@ class GradescopeGrader:
     
     def process_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         # TODO Group questions
+        print(f"Grouping...")
         groups = self.group_question(qid, question, email_to_data_map, email_to_question_sub_id_map)
         if groups:
             # Group answers
+            print(f"Syncing groups on gradescope...")
             self.add_groups_on_gradescope(question, groups)
             # TODO Add rubrics
+            print(f"Adding rubric items...")
             rubric = self.add_rubric(question, groups)
             # in here, add check to see if qid is equal to either name or sid q id so we do not group those.
             # TODO Grade questions
+            print(f"Applying grades for each group...")
             self.grade_question(question, rubric, groups)
+        else:
+            print(f"Failed to group question {qid}!")
     
     def group_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
         qtype = question.data.get("type")
