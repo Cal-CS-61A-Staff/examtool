@@ -85,7 +85,7 @@ class GradescopeGrader:
         # Finally we can process each question
         print("Grouping and grading questions...")
         for qid, question in gs_outline.questions_iterator():
-            print(f"Processing question {qid}...")
+            print(f"[{qid}]: Processing question...")
             self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
 
