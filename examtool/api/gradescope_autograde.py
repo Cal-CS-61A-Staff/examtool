@@ -256,7 +256,7 @@ class GradescopeGrader:
             elif response is []:
                 selection[-2] = True
             else:
-                if response == solution:
+                if solution is not None and response == solution:
                     selection[0] = True
 
             sid = email_to_question_sub_id_map[email][qid]
