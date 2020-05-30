@@ -290,6 +290,9 @@ class GradescopeGrader:
         correct_seq = [True]
         seq_name = [solution]
 
+        # Add a wrong option
+        correct_seq.append(None)
+        seq_name.append("Incorrect")
         # Add blank option
         correct_seq.append(None)
         seq_name.append("Blank")
@@ -318,8 +321,11 @@ class GradescopeGrader:
             elif response is []:
                 selection[-2] = True
             else:
-                if solution is not None and response == solution:
-                    selection[0] = True
+                if solution is not None:
+                    if response == solution:
+                        selection[0] = True
+                    else:
+                        selection[1] = True
 
             sid = email_to_question_sub_id_map[email][qid]
             if response not in g_data:
