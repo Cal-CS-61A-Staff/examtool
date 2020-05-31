@@ -96,7 +96,6 @@ class GradescopeGrader:
             print(f"[{qid}]: Processing question...")
             self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
-
     def export_exam(self, template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id):
         examtool.api.download.export(template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id)
 
