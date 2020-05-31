@@ -1,8 +1,8 @@
 import examtool.api.download
 from examtool.api.gradescope_upload import APIClient
-from examtool.api.fullGSapi.client import GradescopeClient
-from examtool.api.fullGSapi.assignment_grader import GS_Crop_info, GS_Outline, GS_assignment_Grader, GS_Outline_Question, GS_Question, GroupTypes, RubricItem, QuestionRubric
 from examtool.api.extract_questions import extract_groups, extract_questions, extract_public
+from fullGSapi.api.client import GradescopeClient
+from fullGSapi.api.assignment_grader import GS_Crop_info, GS_Outline, GS_assignment_Grader, GS_Outline_Question, GS_Question, GroupTypes, RubricItem, QuestionRubric
 import os
 import time
 

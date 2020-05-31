@@ -20,6 +20,6 @@ setup(
     install_requires=["cryptography"],
     extras_require={
         "admin": ["pytz", "requests", "pypandoc", "google-cloud-firestore", "google-auth", "sendgrid"],
-        "cli": ["click", "pikepdf", "pytz", "requests", "fpdf", "pypandoc", "sendgrid"],
+        "cli": ["click", "pikepdf", "pytz", "requests", "fpdf", "pypandoc", "sendgrid", "fullGSapi"],
     },
 )
