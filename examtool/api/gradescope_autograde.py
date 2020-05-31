@@ -486,7 +486,9 @@ class GradescopeGrader:
         points = question.data.get("points", 1)
         if points is None:
             points = 1
-        rubric_weight = (1 / num_correct) * points
+        rubric_weight = 0
+        if num_correct != 0:
+            rubric_weight = (1 / num_correct) * points
         for correct in correct_seq:
             if correct is None:
                 scores.append(0)
