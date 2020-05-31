@@ -22,7 +22,7 @@ class GradescopeGrader:
 
         if email and password:
             if not gs_client.is_logged_in():
-                print(f"Logging in to the normal Gradescope API...")
+                print(f"Logging into the normal Gradescope API...")
                 self.gs_client.log_in(email, password)
             if not self.gs_api_client.is_logged_in():
                 print(f"Logging into the full Gradescope API...")
@@ -47,6 +47,14 @@ class GradescopeGrader:
         print("Exporting exam pdfs...")
         self.export_exam(template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id)
 
+        for email, data in email_to_data_map.items():
+            std_questions = data["student_questions"]
+            std_responses = data["responses"]
+            for question in std_questions:
+                qid = question["id"]
+                if qid not in std_responses:
+                    std_responses[qid] = [] if question["type"] in ["multiple_choice", "select_all"] else ""
+
         # Create assignment if one is not already created.
         if gs_assignment_id is None:
             print("Creating the gradescope assignment...")
@@ -63,7 +71,7 @@ class GradescopeGrader:
         
         # Now that we have the assignment and outline pdf, lets generate the outline.
         print("Generating the examtool outline...")
-        examtool_outline = ExamtoolOutline(grader, exam_json)
+        examtool_outline = ExamtoolOutline(grader, exam_json, [name_question_id, sid_question_id])
 
         # Finally we need to upload and sync the outline.
         print("Uploading the generated outline...")
@@ -207,7 +215,7 @@ class GradescopeGrader:
             selection = [False] * len(correct_seq)
             if response is None:
                 selection[-1] = True
-            elif response is []:
+            elif response == []:
                 selection[-2] = True
             else:
                 for i, option in enumerate(all_options):
@@ -265,7 +273,7 @@ class GradescopeGrader:
             selection = [False] * len(correct_seq)
             if response is None:
                 selection[-1] = True
-            elif response is []:
+            elif response == []:
                 selection[-2] = True
             else:
                 for i, option in enumerate(all_options):
@@ -318,14 +326,16 @@ class GradescopeGrader:
             selection = [False] * len(correct_seq)
             if response is None:
                 selection[-1] = True
-            elif response is []:
+            elif response == "":
                 selection[-2] = True
             else:
                 if solution is not None:
                     if response == solution:
                         selection[0] = True
+                        response = "Blank"
                     else:
                         selection[1] = True
+                        response = "Student did not receive this question"
 
             sid = email_to_question_sub_id_map[email][qid]
             if response not in g_data:
@@ -379,9 +389,9 @@ class GradescopeGrader:
             if not response:
                 sid = email_to_question_sub_id_map[email][qid]
                 if response is None:
-                    g_data["Blank"]["sids"].append(sid)
-                elif response is []:
                     g_data["Student did not receive this question"]["sids"].append(sid)            
+                elif response == "":
+                    g_data["Blank"]["sids"].append(sid)
         return groups
 
     def add_groups_on_gradescope(self, qid: str, question: GS_Question, groups: dict):
@@ -484,9 +494,9 @@ class ExamtoolOutline:
     name_region = GS_Crop_info(1, 2.4, 11.4, 100, 18.8)
     sid_region = GS_Crop_info(1, 2.4, 18.9, 100, 28.7)
 
-    def __init__(self, grader: GS_assignment_Grader, exam_json: dict):
+    def __init__(self, grader: GS_assignment_Grader, exam_json: dict, id_ids: [str]):
         self.exam_json = exam_json
-        self.gs_number_to_exam_q, self.gs_outline = self.generate_gs_outline(grader, exam_json)
+        self.gs_number_to_exam_q, self.gs_outline = self.generate_gs_outline(grader, exam_json, id_ids)
 
     def get_gs_crop_info(self, page, question=None):
         return GS_Crop_info(page, 0, 0, 100, 100)
@@ -503,7 +513,7 @@ class ExamtoolOutline:
             weight=weight
             )
 
-    def generate_gs_outline(self, grader: GS_assignment_Grader, exam_json: dict):
+    def generate_gs_outline(self, grader: GS_assignment_Grader, exam_json: dict, id_ids: [str]):
         gs_number_to_exam_q = {}
         questions = []
 
@@ -515,11 +525,16 @@ class ExamtoolOutline:
             pg = GS_Outline_Question(grader, None, [self.get_gs_crop_info(page, exam_json.get("public"))], title="Public", weight=0)
             sqid = 1
             for question in extract_public(exam_json):
+                question_id = question.get("id")
+                if question_id in id_ids:
+                    print(f"Skipping {question_id} as it is an id question.")
+                    page += 1 # Still need to increment this as it is still on the exam pdf.
+                    continue
                 pg.add_child(self.question_to_gso_question(grader, page, question))
                 gs_number_to_exam_q[f"{qid}.{sqid}"] = question
                 sqid += 1
                 page += 1
-            if page != prev_page:
+            if page != prev_page and len(pg.children) > 0:
                 questions.append(pg)
                 qid += 1
 
