@@ -178,7 +178,11 @@ class GradescopeGrader:
         # This is a list of correct options from left (top) to right (bottom)
         correct_seq = []
         seq_name = []
-        solution_options = data.get("solution", {}).get("options", [])
+        solution_options = data.get("solution", {})
+        if solution_options is not None:
+            solution_options = solution_options.get("options", [])
+        if solution_options is None:
+            solution_options = []
         all_options = [option.get("text") for option in data.get("options", [])]
         for option in all_options:
             correct_seq.append(option in solution_options)
@@ -236,7 +240,11 @@ class GradescopeGrader:
         # This is a list of correct options from left (top) to right (bottom)
         correct_seq = []
         seq_name = []
-        solution_options = data.get("solution", {}).get("options", [])
+        solution_options = data.get("solution", {})
+        if solution_options is not None:
+            solution_options = solution_options.get("options", [])
+        if solution_options is None:
+            solution_options = []
         all_options = [option.get("text") for option in data.get("options", [])]
         for option in all_options:
             correct_seq.append(option in solution_options)
@@ -289,10 +297,14 @@ class GradescopeGrader:
             g_data[s]["sids"].append(sid)
         return groups
 
-    def group_short_ans_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict):
+    def group_short_ans_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict, lower_check: bool=True):
         data = question.data
         # This is a list of correct options from left (top) to right (bottom)
-        solution = data.get("solution", {}).get("solution", {}).get("text")
+        solution = data.get("solution", {})
+        if solution is not None:
+            solution = solution.get("solution", {})
+            if solution is not None:
+                solution = solution.get("text")
         if not solution:
             print(f"[{qid}]: No solution defined for this question! Only grouping blank and std did not receive.")
         correct_seq = [True]
@@ -326,16 +338,21 @@ class GradescopeGrader:
             selection = [False] * len(correct_seq)
             if response is None:
                 selection[-1] = True
+                response = "Student did not receive this question"
             elif response == "":
                 selection[-2] = True
+                response = "Blank"
             else:
                 if solution is not None:
-                    if response == solution:
+                    same = None
+                    if lower_check:
+                        same = response.lower() == solution.lower()
+                    else:
+                        same = response == solution
+                    if same:
                         selection[0] = True
-                        response = "Blank"
                     else:
                         selection[1] = True
-                        response = "Student did not receive this question"
 
             sid = email_to_question_sub_id_map[email][qid]
             if response not in g_data:
@@ -408,6 +425,9 @@ class GradescopeGrader:
         attempt = 1
         for g_name, data in gdata.items():
             sids = data["sids"]
+            if not sids:
+                # We do not want to create groups which no questions exist.
+                continue
             while attempt < max_attempts:
                 group_id = question.add_group(g_name)
                 if group_id is None:
@@ -428,14 +448,22 @@ class GradescopeGrader:
     
     def add_rubric(self, qid: str, question: GS_Question, groups: dict) -> QuestionRubric:
         rubric = QuestionRubric(question)
-        if not rubric.delete_existing_rubric():
-            print(f"[{qid}] Failed to remove the existing rubric!")
+        # if not rubric.delete_existing_rubric():
+        #     print(f"[{qid}] Failed to remove the existing rubric!")
+        prev_rubric_questions = rubric.rubric_items.copy()
         seq_names = groups["seq_names"]
         correct_seq = groups["correct_seq"]
         rubric_scores = self.get_rubric_scores(question, seq_names, correct_seq)
         for name, score in zip(seq_names, rubric_scores):
             rubric_item = RubricItem(description=name, weight=score)
             rubric.add_rubric_item(rubric_item)
+
+        # Remove existing rubric items
+        for item in prev_rubric_questions:
+            rubric.delete_rubric_item(item)
+        if any([item in rubric.rubric_items for item in prev_rubric_questions]):
+            print(f"[{qid}] Failed to remove the existing rubric!")
+
         return rubric
 
     def get_rubric_scores(self,question: GS_Question, seq_names: [str], correct_seq: [bool]):
@@ -459,7 +487,7 @@ class GradescopeGrader:
         points = question.data.get("points", 1)
         if points is None:
             points = 1
-        rubric_weight = num_correct / num_choices * points
+        rubric_weight = (1 / num_correct) * points
         for correct in correct_seq:
             if correct is None:
                 scores.append(0)
@@ -494,9 +522,9 @@ class ExamtoolOutline:
     name_region = GS_Crop_info(1, 2.4, 11.4, 100, 18.8)
     sid_region = GS_Crop_info(1, 2.4, 18.9, 100, 28.7)
 
-    def __init__(self, grader: GS_assignment_Grader, exam_json: dict, id_ids: [str]):
+    def __init__(self, grader: GS_assignment_Grader, exam_json: dict, id_question_ids: [str]):
         self.exam_json = exam_json
-        self.gs_number_to_exam_q, self.gs_outline = self.generate_gs_outline(grader, exam_json, id_ids)
+        self.gs_number_to_exam_q, self.gs_outline = self.generate_gs_outline(grader, exam_json, id_question_ids)
 
     def get_gs_crop_info(self, page, question=None):
         return GS_Crop_info(page, 0, 0, 100, 100)
@@ -513,7 +541,7 @@ class ExamtoolOutline:
             weight=weight
             )
 
-    def generate_gs_outline(self, grader: GS_assignment_Grader, exam_json: dict, id_ids: [str]):
+    def generate_gs_outline(self, grader: GS_assignment_Grader, exam_json: dict, id_question_ids: [str]):
         gs_number_to_exam_q = {}
         questions = []
 
@@ -526,7 +554,7 @@ class ExamtoolOutline:
             sqid = 1
             for question in extract_public(exam_json):
                 question_id = question.get("id")
-                if question_id in id_ids:
+                if question_id in id_question_ids:
                     print(f"Skipping {question_id} as it is an id question.")
                     page += 1 # Still need to increment this as it is still on the exam pdf.
                     continue
@@ -537,7 +565,7 @@ class ExamtoolOutline:
             if page != prev_page and len(pg.children) > 0:
                 questions.append(pg)
                 qid += 1
-
+        
         for group in extract_groups(exam_json):
             prev_page = page
             weight = group.get("points", "0")

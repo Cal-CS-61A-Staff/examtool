@@ -36,7 +36,7 @@ def extract_public(exam):
 def extract_groups(group):
     for g in group["groups"]:
         if is_compresable_group(g):
-            for g2 in g["groups"]:
+            for g2 in g["elements"]:
                 yield g2
         else:
             yield g
