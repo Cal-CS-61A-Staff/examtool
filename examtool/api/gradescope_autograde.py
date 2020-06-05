@@ -41,6 +41,8 @@ class GradescopeGrader:
         emails: [str] = None,
         email_mutation_list: {str: str} = {},
         ):
+        if gs_assignment_title is None:
+            gs_assignment_title = "Examtool Exam"
         if not exams:
             raise ValueError("You must specify at least one exam you would like to upload!")
 
