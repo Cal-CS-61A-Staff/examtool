@@ -93,20 +93,21 @@ def write_exam(
 
     return pdf
 
-def export(template_questions, student_responses, total, exam, out, name_question, sid_question, dispatch=None):
+def export(template_questions, student_responses, total, exam, out, name_question, sid_question, dispatch=None, include_outline=True):
     out = out or "out/export/" + exam
     pathlib.Path(out).mkdir(parents=True, exist_ok=True)
 
-    pdf = write_exam(
-        {},
-        exam,
-        template_questions,
-        template_questions,
-        name_question,
-        sid_question,
-        dispatch,
-    )
-    pdf.output(os.path.join(out, "OUTLINE.pdf"))
+    if include_outline:
+        pdf = write_exam(
+            {},
+            exam,
+            template_questions,
+            template_questions,
+            name_question,
+            sid_question,
+            dispatch,
+        )
+        pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
     for email, data in student_responses.items():
         pdf = write_exam(

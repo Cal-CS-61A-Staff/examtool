@@ -30,30 +30,30 @@ class GradescopeGrader:
         print(f"Finished setting up the Gradescope Grader")
 
     def main(
-        self, 
-        exam: str, 
+        self,
+        exams: [str], 
         out: str, 
         name_question_id: str, 
         sid_question_id: str, 
         gs_class_id: str, 
         gs_assignment_id: str=None, # If none, we will create a class.
         gs_assignment_title: str="Examtool Exam",
+        emails: [str] = None,
+        email_mutation_list: {str: str} = {},
         ):
+        if not exams:
+            raise ValueError("You must specify at least one exam you would like to upload!")
 
-        out = out or "out/export/" + exam
-        print("Download exams data...")
-        exam_json, template_questions, email_to_data_map, total = examtool.api.download.download(exam)
+        out = out or "out/export/" + exams[0]
 
-        print("Exporting exam pdfs...")
-        self.export_exam(template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id)
-
-        for email, data in email_to_data_map.items():
-            std_questions = data["student_questions"]
-            std_responses = data["responses"]
-            for question in std_questions:
-                qid = question["id"]
-                if qid not in std_responses:
-                    std_responses[qid] = [] if question["type"] in ["multiple_choice", "select_all"] else ""
+        exam_json, email_to_data_map = self.fetch_and_export_examtool_exam_data(
+            exams, 
+            out, 
+            name_question_id, 
+            sid_question_id, 
+            emails=emails, 
+            email_mutation_list=email_mutation_list
+        )
 
         # Create assignment if one is not already created.
         if gs_assignment_id is None:
@@ -96,8 +96,156 @@ class GradescopeGrader:
             print(f"[{qid}]: Processing question...")
             self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
-    def export_exam(self, template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id):
-        examtool.api.download.export(template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id)
+    def add_additional_exams(
+        self,
+        exams: [str], 
+        out: str, 
+        name_question_id: str, 
+        sid_question_id: str, 
+        gs_class_id: str, 
+        gs_assignment_id: str,
+        emails: [str]=None,
+        email_mutation_list: {str: str} = {}
+        ):
+        """
+        If emails is None, we will import the entire exam, if it has emails in it, it will only upload submissions
+        from the students in the emails list contained in the exams list. If the student has submissions in multiple exams,
+        the tool will warn you and ask which exam you would like to use as the student submission.
+        """
+        if not exams:
+            raise ValueError("You must specify at least one exam you would like to upload!")
+
+        out = out or "out/export/" + exams[0]
+
+        exam_json, email_to_data_map = self.fetch_and_export_examtool_exam_data(
+            exams, 
+            out, 
+            name_question_id, 
+            sid_question_id, 
+            emails=emails, 
+            email_mutation_list=email_mutation_list
+        )
+        
+        # Lets now get the assignment grader
+        grader: GS_assignment_Grader = self.get_assignment_grader(gs_class_id, gs_assignment_id)
+
+        # Now that we have the assignment and outline pdf, lets generate the outline.
+        print("Generating the examtool outline...")
+        examtool_outline = ExamtoolOutline(grader, exam_json, [name_question_id, sid_question_id])
+
+        # Merge the outline with the existing one
+        outline = grader.get_outline()
+        if not outline: 
+            raise ValueError("Failed to fetch the existing outline")
+        examtool_outline.merge_gs_outline_ids(outline)
+
+        # We can now upload the student submission since we have an outline
+        print("Uploading student submissions...")
+        self.upload_student_submissions(out, gs_class_id, gs_assignment_id)
+
+        # Fetch the student email to question id map
+        print("Fetching the student email to submission id's mapping...")
+        email_to_question_sub_id = grader.email_to_qids()
+
+        # Finally we can process each question
+        print("Grouping and grading questions...")
+        gs_outline = examtool_outline.get_gs_outline()
+        for qid, question in gs_outline.questions_iterator():
+            print(f"[{qid}]: Processing question...")
+            self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
+
+    
+    def fetch_and_export_examtool_exam_data(
+        self,
+        exams: [str],
+        out: str,
+        name_question_id: str,
+        sid_question_id: str,
+        emails: [str] = None,
+        email_mutation_list: {str: str} = {}
+        ):
+        """
+        Fetches the submissions from the exams in the exams list.
+        If the emails list is None, it will fetch all emails, if it has emails in it, it will only return data for those emails.
+        The mutation step occurres after the specific emails selection stage if applicable.
+        The mutation list comes in the form of current email to new email.
+
+        Returns:
+        exam_json - The json of the exam
+        email_to_data_map - the mapping of emails to their data.
+        """
+        if not exams:
+            raise ValueError("You must specify at least one exam you would like to upload!")
+
+        print("Downloading exams data...")
+        exam_json = None
+        email_to_data_map = {}
+        email_to_exam_map = {}
+
+        first_exam = True
+        for exam in exams:
+            tmp_exam_json, tmp_template_questions, tmp_email_to_data_map, tmp_total = examtool.api.download.download(exam)
+            # Set global data for the examtool
+            if first_exam:
+                first_exam = False
+                exam_json = tmp_exam_json
+                
+
+            # Choose only the emails we want to keep.
+            if emails:
+                for email in list(tmp_email_to_data_map.keys()):
+                    if email not in emails:
+                        tmp_email_to_data_map.pop(email, None)
+
+            # Next, we want to mutate any emails
+            for orig_email, new_email in email_mutation_list.items():
+                if orig_email not in tmp_email_to_data_map:
+                    # print(f"WARNING: Could not perform mutation on email {orig_email} (to {new_email}) because it does not exist in the data map!")
+                    continue
+                if new_email in tmp_email_to_data_map:
+                    print(f"Could not mutate email {new_email} (from {orig_email}) as the original email is already in the data map!")
+                    continue
+                tmp_email_to_data_map[new_email] = tmp_email_to_data_map.pop(orig_email)
+            
+            # Finally, we should merge together the student responses.
+            for email, data in tmp_email_to_data_map.items():
+                if email in email_to_data_map:
+                    print(f"WARNING: Student with email {email} submitted to multiple exams!")
+                    def prompt_q():
+                        input_data = None
+                        while not input_data:
+                            print(f"Student's current responses are from {email_to_exam_map[email]}, would you like to use {exam} instead?")
+                            input_data = input("[y/n]> ")
+                            if input_data.lower() in ["y", "yes"]:
+                                return True
+                            if input_data in ["n", "no"]:
+                                return False
+                            print("Please type yes or no!")
+                    if not prompt_q():
+                        continue
+                email_to_exam_map[email] = exam
+                email_to_data_map[email] = data
+            print(f"[{exam}]: Exporting exam pdfs...")
+            self.export_exam(tmp_template_questions, tmp_email_to_data_map, tmp_total, exam, out, name_question_id, sid_question_id, include_outline=first_exam)
+        
+        # Lets finally clean up the student responses
+        self.cleanse_student_response_data(email_to_data_map)
+
+        return exam_json, email_to_data_map
+
+    def cleanse_student_response_data(self, email_to_data_map: dict):
+        for email, data in email_to_data_map.items():
+            std_questions = data["student_questions"]
+            std_responses = data["responses"]
+            for question in std_questions:
+                qid = question["id"]
+                if qid not in std_responses:
+                    std_responses[qid] = [] if question["type"] in ["multiple_choice", "select_all"] else ""
+            
+
+
+    def export_exam(self, template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id, include_outline=True):
+        examtool.api.download.export(template_questions, email_to_data_map, total, exam, out, name_question_id, sid_question_id, include_outline=include_outline)
 
     def create_assignment(self, gs_class_id: str, gs_title: str, outline_path: str):
         assignment_id = self.gs_client.create_exam(gs_class_id, gs_title, outline_path)
@@ -136,7 +284,15 @@ class GradescopeGrader:
         #     q_type = GroupTypes.non_grouped
         return q.set_group_type(q_type)
     
-    def process_question(self, qid: str, question: GS_Question, email_to_data_map: dict, email_to_question_sub_id_map: dict, name_question_id: str, sid_question_id: str):
+    def process_question(
+        self, 
+        qid: str, 
+        question: GS_Question, 
+        email_to_data_map: dict, 
+        email_to_question_sub_id_map: dict, 
+        name_question_id: str, 
+        sid_question_id: str
+        ):
         # TODO Group questions
         if question.data.get("id") in [name_question_id, sid_question_id]:
             print("Skipping grouping of an id question!")
@@ -146,10 +302,10 @@ class GradescopeGrader:
         if groups:
             # Group answers
             print(f"Syncing groups on gradescope...")
-            self.add_groups_on_gradescope(qid, question, groups)
+            self.sync_groups_on_gradescope(qid, question, groups)
             # TODO Add rubrics
-            print(f"Adding rubric items...")
-            rubric = self.add_rubric(qid, question, groups)
+            print(f"Syncing rubric items...")
+            rubric = self.sync_rubric(qid, question, groups)
             # in here, add check to see if qid is equal to either name or sid q id so we do not group those.
             # TODO Grade questions
             print(f"Applying grades for each group...")
@@ -410,7 +566,7 @@ class GradescopeGrader:
                     g_data["Blank"]["sids"].append(sid)
         return groups
 
-    def add_groups_on_gradescope(self, qid: str, question: GS_Question, groups: dict):
+    def sync_groups_on_gradescope(self, qid: str, question: GS_Question, groups: dict):
         """
         Groups is a list of name, submission_id, selected answers
         """
@@ -419,7 +575,35 @@ class GradescopeGrader:
             timeout = 5
             print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds.")
             time.sleep(timeout)
+        gradescope_groups = question.get_groups()
         gdata = groups["groups"]
+        def all_zeros(s: str):
+            return s and all(v=='0' for v in s)
+        def set_group(g_name, data, gs_group):
+            data["id"] = gs_group.get("id")
+        for g_name, data in gdata.items():
+            for gs_group in gradescope_groups:
+                if gs_group["question_type"] == "mc":
+                    # The question type is mc so lets group by the internal mc
+                    if g_name == "Blank":
+                        # This is the blank group, lets use the internal label to group
+                        if all_zeros(gs_group["internal_title"]):
+                            set_group(g_name, data, gs_group)
+                    else:
+                        flip_g_name = g_name[:-2][::-1]
+                        if gs_group["internal_title"] is not None:
+                            if flip_g_name == gs_group["internal_title"]:
+                                set_group(g_name, data, gs_group)
+                        else:
+                            if g_name == gs_group["title"]:
+                                set_group(g_name, data, gs_group)
+                else:
+                    # The question type is not mc so we should group on title and internal title for blank.
+                    # The internal title should only say Blank for default blank grouped submissions.
+                    # We then check the normal title if this is not true
+                    if g_name == gs_group["internal_title"] or g_name == gs_group["title"]:
+                        set_group(g_name, data, gs_group)
+
         max_attempts = 5
         attempt = 1
         for g_name, data in gdata.items():
@@ -427,8 +611,10 @@ class GradescopeGrader:
             if not sids:
                 # We do not want to create groups which no questions exist.
                 continue
+            group_id = data.get("id", None)
             while attempt < max_attempts:
-                group_id = question.add_group(g_name)
+                if not group_id:
+                    group_id = question.add_group(g_name)
                 if group_id is None:
                     attempt += 1
                     time.sleep(1)
@@ -445,23 +631,28 @@ class GradescopeGrader:
         for failed_group_name in failed_groups_names:
             gdata.pop(failed_group_name, None)
     
-    def add_rubric(self, qid: str, question: GS_Question, groups: dict) -> QuestionRubric:
+    def sync_rubric(self, qid: str, question: GS_Question, groups: dict) -> QuestionRubric:
         rubric = QuestionRubric(question)
-        # if not rubric.delete_existing_rubric():
-        #     print(f"[{qid}] Failed to remove the existing rubric!")
-        prev_rubric_questions = rubric.rubric_items.copy()
         seq_names = groups["seq_names"]
         correct_seq = groups["correct_seq"]
+        if len(seq_names) == 0:
+            return rubric
         rubric_scores = self.get_rubric_scores(question, seq_names, correct_seq)
+        if len(rubric) == 1:
+            default_rubric_item = rubric.get_rubric_items()[0]
+            if default_rubric_item.description == "Correct":
+                if not rubric.update_rubric_item(default_rubric_item, description=seq_names[0]):
+                    print(f"[{qid}]: Failed to update default \"Correct\" rubric item!")
+        existing_rubric_items = rubric.get_rubric_items()
         for name, score in zip(seq_names, rubric_scores):
-            rubric_item = RubricItem(description=name, weight=score)
-            rubric.add_rubric_item(rubric_item)
-
-        # Remove existing rubric items
-        for item in prev_rubric_questions:
-            rubric.delete_rubric_item(item)
-        if any([item in rubric.rubric_items for item in prev_rubric_questions]):
-            print(f"[{qid}] Failed to remove the existing rubric!")
+            for existing_rubric_item in existing_rubric_items:
+                if existing_rubric_item.description == name:
+                    if float(existing_rubric_item.score) != score:
+                        rubric.update_rubric_item(existing_rubric_item, weight=score)
+                    break
+            else:
+                rubric_item = RubricItem(description=name, weight=score)
+                rubric.add_rubric_item(rubric_item)
 
         return rubric
 
@@ -510,12 +701,16 @@ class GradescopeGrader:
         return [0] * len(correct_seq)
 
     def grade_question(self, question: GS_Question, rubric: QuestionRubric, groups: dict):
+        question_data = question.get_question_info()
+        sub_id_mapping = {sub["id"]: sub for sub in question_data["submissions"]}
         for group_name, group_data in groups["groups"].items():
             group_sel = group_data["sel_seq"]
             group_sids = group_data["sids"]
             if len(group_sids) > 0:
-                if not rubric.grade(group_sids[0], group_sel, save_group=True):
-                    print(f"Failed to grade group {group_name}!")
+                sid = group_sids[0]
+                if not sub_id_mapping[sid]["graded"]:
+                    if not rubric.grade(sid, group_sel, save_group=True):
+                        print(f"Failed to grade group {group_name}!")
 
 
 
