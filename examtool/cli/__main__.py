@@ -5,6 +5,7 @@ from examtool.cli.check_dupes import check_dupes
 from examtool.cli.compile_all import compile_all
 from examtool.cli.deploy import deploy
 from examtool.cli.download import download
+from examtool.cli.gradescope_autograde import gradescope_autograde
 from examtool.cli.gradescope_upload import gradescope_upload
 from examtool.cli.login import login
 from examtool.cli.logs import logs
@@ -28,6 +29,7 @@ cli.add_command(check_dupes)
 cli.add_command(compile_all)
 cli.add_command(deploy)
 cli.add_command(download)
+cli.add_command(gradescope_autograde)
 cli.add_command(gradescope_upload)
 cli.add_command(logs)
 cli.add_command(send)

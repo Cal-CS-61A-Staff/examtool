@@ -21,6 +21,9 @@ from examtool.api.gradescope_autograde import GradescopeGrader
 @click.option("--create/--update", default=True, help="Create will generate the outline and set the grouping type, update will ")
 @hidden_target_folder_option
 def gradescope_autograde(exam, name_question, sid_question, course, assignment, title, email, password, emails, mutate_emails, create_or_update, target):
+    """
+    Uploads and autogrades the given exam(s).
+    """
     target = target or "out/export/" + exam
 
     grader = GradescopeGrader(email=email, password=password)
