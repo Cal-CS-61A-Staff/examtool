@@ -24,9 +24,6 @@ def gradescope_autograde(exam, name_question, sid_question, course, assignment, 
     """
     Uploads and autogrades the given exam(s).
     """
-    import IPython
-    IPython.embed()
-    return
     target = target or "out/export/" + exam[0]
 
     grader = GradescopeGrader(email=email, password=password)
