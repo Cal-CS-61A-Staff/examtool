@@ -43,8 +43,10 @@ class GradescopeGrader:
         gs_assignment_id: str=None, # If none, we will create a class.
         gs_assignment_title: str="Examtool Exam",
         emails: [str] = None,
+        blacklist_emails: [str] = None,
         email_mutation_list: {str: str} = {},
         question_numbers: [str] = None,
+        blacklist_question_numbers: [str] = None
         ):
         if gs_assignment_title is None:
             gs_assignment_title = "Examtool Exam"
@@ -61,6 +63,11 @@ class GradescopeGrader:
             emails=emails, 
             email_mutation_list=email_mutation_list
         )
+
+        # Remove blacklisted emails
+        if blacklist_emails is not None:
+            for bemail in blacklist_emails:
+                email_to_data_map.pop(bemail, None)
 
         # Create assignment if one is not already created.
         if gs_assignment_id is None:
@@ -109,7 +116,7 @@ class GradescopeGrader:
         # Finally we can process each question
         print("Grouping and grading questions...")
         for qid, question in gs_outline.questions_iterator():
-            if question_numbers is not None and qid not in question_numbers:
+            if question_numbers is not None and qid not in question_numbers or blacklist_question_numbers is not None and qid in blacklist_question_numbers:
                 print(f"[{qid}]: Skipping!")
                 continue
             print(f"[{qid}]: Processing question...")
@@ -124,8 +131,10 @@ class GradescopeGrader:
         gs_class_id: str, 
         gs_assignment_id: str,
         emails: [str]=None,
+        blacklist_emails: [str] = None,
         email_mutation_list: {str: str} = {},
         question_numbers: [str] = None,
+        blacklist_question_numbers: [str] = None
         ):
         """
         If emails is None, we will import the entire exam, if it has emails in it, it will only upload submissions
@@ -147,6 +156,12 @@ class GradescopeGrader:
             emails=emails, 
             email_mutation_list=email_mutation_list
         )
+
+        # Remove blacklisted emails
+        if blacklist_emails is not None:
+            for bemail in blacklist_emails:
+                email_to_data_map.pop(bemail, None)
+
         
         # Lets now get the assignment grader
         grader: GS_assignment_Grader = self.get_assignment_grader(gs_class_id, gs_assignment_id)
@@ -182,7 +197,7 @@ class GradescopeGrader:
         print("Grouping and grading questions...")
         gs_outline = examtool_outline.get_gs_outline()
         for qid, question in gs_outline.questions_iterator():
-            if question_numbers is not None and qid not in question_numbers:
+            if question_numbers is not None and qid not in question_numbers or blacklist_question_numbers is not None and qid in blacklist_question_numbers:
                 print(f"[{qid}]: Skipping!")
                 continue
             print(f"[{qid}]: Processing question...")
@@ -577,9 +592,9 @@ class GradescopeGrader:
                 if solution is not None:
                     same = None
                     if lower_check:
-                        same = response.lower() == solution.lower()
+                        same = response.lower().strip() == solution.lower().strip()
                     else:
-                        same = response == solution
+                        same = response.strip() == solution.strip()
                     if same:
                         selection[0] = True
                     else:
