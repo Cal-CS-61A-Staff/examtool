@@ -1,3 +1,7 @@
+"""
+Developed by ThaumicMekanism [Stephan K.] - all credit goes to him!
+"""
+
 import examtool.api.download
 from examtool.api.gradescope_upload import APIClient
 from examtool.api.extract_questions import extract_groups, extract_questions, extract_public
@@ -40,6 +44,7 @@ class GradescopeGrader:
         gs_assignment_title: str="Examtool Exam",
         emails: [str] = None,
         email_mutation_list: {str: str} = {},
+        question_numbers: [str] = None,
         ):
         if gs_assignment_title is None:
             gs_assignment_title = "Examtool Exam"
@@ -81,7 +86,13 @@ class GradescopeGrader:
 
         # We can now upload the student submission since we have an outline
         print("Uploading student submissions...")
-        self.upload_student_submissions(out, gs_class_id, gs_assignment_id)
+        failed_uploads = self.upload_student_submissions(out, gs_class_id, gs_assignment_id, emails=email_to_data_map.keys())
+
+        # Removing emails which failed to upload
+        if failed_uploads:
+            print(f"Removing emails which failed to upload. Note: These will NOT be graded! {failed_uploads}")
+            for email in failed_uploads:
+                email_to_data_map.pop(email)
 
         # TODO For each question, group, add rubric and grade
         print("Setting the grade type for grouping for each question...")
@@ -92,9 +103,15 @@ class GradescopeGrader:
         print("Fetching the student email to submission id's mapping...")
         email_to_question_sub_id = grader.email_to_qids()
 
+        # Check to see which emails may not be in the Gradescope roster and attempt to correct
+        self.attempt_fix_unknown_gs_email(email_to_question_sub_id, email_to_data_map, name_question_id=name_question_id, sid_question_id=sid_question_id)
+
         # Finally we can process each question
         print("Grouping and grading questions...")
         for qid, question in gs_outline.questions_iterator():
+            if question_numbers is not None and qid not in question_numbers:
+                print(f"[{qid}]: Skipping!")
+                continue
             print(f"[{qid}]: Processing question...")
             self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
@@ -107,7 +124,8 @@ class GradescopeGrader:
         gs_class_id: str, 
         gs_assignment_id: str,
         emails: [str]=None,
-        email_mutation_list: {str: str} = {}
+        email_mutation_list: {str: str} = {},
+        question_numbers: [str] = None,
         ):
         """
         If emails is None, we will import the entire exam, if it has emails in it, it will only upload submissions
@@ -116,6 +134,8 @@ class GradescopeGrader:
         """
         if not exams:
             raise ValueError("You must specify at least one exam you would like to upload!")
+        if email_mutation_list is None:
+            email_mutation_list = {}
 
         out = out or "out/export/" + exams[0]
 
@@ -143,16 +163,28 @@ class GradescopeGrader:
 
         # We can now upload the student submission since we have an outline
         print("Uploading student submissions...")
-        self.upload_student_submissions(out, gs_class_id, gs_assignment_id)
+        failed_uploads = self.upload_student_submissions(out, gs_class_id, gs_assignment_id, emails=email_to_data_map.keys())
+
+        # Removing emails which failed to upload
+        if failed_uploads:
+            print(f"Removing emails which failed to upload. Note: These will NOT be graded! {failed_uploads}")
+            for email in failed_uploads:
+                email_to_data_map.pop(email)
 
         # Fetch the student email to question id map
         print("Fetching the student email to submission id's mapping...")
         email_to_question_sub_id = grader.email_to_qids()
 
+        # Check to see which emails may not be in the Gradescope roster and attempt to correct
+        self.attempt_fix_unknown_gs_email(email_to_question_sub_id, email_to_data_map, name_question_id=name_question_id, sid_question_id=sid_question_id)
+
         # Finally we can process each question
         print("Grouping and grading questions...")
         gs_outline = examtool_outline.get_gs_outline()
         for qid, question in gs_outline.questions_iterator():
+            if question_numbers is not None and qid not in question_numbers:
+                print(f"[{qid}]: Skipping!")
+                continue
             print(f"[{qid}]: Processing question...")
             self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
 
@@ -178,6 +210,8 @@ class GradescopeGrader:
         """
         if not exams:
             raise ValueError("You must specify at least one exam you would like to upload!")
+        if email_mutation_list is None:
+            email_mutation_list = {}
 
         print("Downloading exams data...")
         exam_json = None
@@ -187,10 +221,6 @@ class GradescopeGrader:
         first_exam = True
         for exam in exams:
             tmp_exam_json, tmp_template_questions, tmp_email_to_data_map, tmp_total = examtool.api.download.download(exam)
-            # Set global data for the examtool
-            if first_exam:
-                first_exam = False
-                exam_json = tmp_exam_json
                 
 
             # Choose only the emails we want to keep.
@@ -220,7 +250,7 @@ class GradescopeGrader:
                             input_data = input("[y/n]> ")
                             if input_data.lower() in ["y", "yes"]:
                                 return True
-                            if input_data in ["n", "no"]:
+                            if input_data.lower() in ["n", "no"]:
                                 return False
                             print("Please type yes or no!")
                     if not prompt_q():
@@ -229,11 +259,49 @@ class GradescopeGrader:
                 email_to_data_map[email] = data
             print(f"[{exam}]: Exporting exam pdfs...")
             self.export_exam(tmp_template_questions, tmp_email_to_data_map, tmp_total, exam, out, name_question_id, sid_question_id, include_outline=first_exam)
-        
+
+            # Set global data for the examtool
+            if first_exam:
+                first_exam = False
+                exam_json = tmp_exam_json
+
         # Lets finally clean up the student responses
         self.cleanse_student_response_data(email_to_data_map)
 
         return exam_json, email_to_data_map
+
+    def attempt_fix_unknown_gs_email(self, email_to_question_sub_id, email_to_data_map, name_question_id, sid_question_id):
+        def prompt_fix(old_email, name, sid):
+            input_data = None
+            while not input_data:
+                print(f"Could not find {old_email} (name: {name}; sid: {sid}) in Gradescope! Please enter the Gradescope email of the student or `skip` to remove this student from autograding.")
+                input_data = input("> ")
+                if "@" in input_data.lower():
+                    return input_data
+                if input_data.lower() in ["n", "no", "skip"]:
+                    return False
+                print("The input is not a valid email (you are missing the `@`)! If you would like to skip, type `skip` or `no`.")
+        remove_email = ["DUMMY"]
+        map_email = {}
+        while remove_email or map_email:
+            remove_email = []
+            map_email = {}
+            for email, data in email_to_data_map.items():
+                if email not in email_to_question_sub_id:
+                    responses = data["responses"]
+                    name = responses.get(name_question_id, None)
+                    sid = responses.get(sid_question_id, None)
+                    new_email = prompt_fix(email, name, sid)
+                    if new_email:
+                        map_email[email] = new_email
+                    else:
+                        print(f"Skipping {email}! This will remove the email from the data map.")
+                        remove_email.append(email)
+            for email, new_email in map_email.items():
+                email_to_data_map[new_email] = email_to_data_map.pop(email)
+            for email in remove_email:
+                email_to_data_map.pop(email)
+
 
     def cleanse_student_response_data(self, email_to_data_map: dict):
         for email, data in email_to_data_map.items():
@@ -265,12 +333,17 @@ class GradescopeGrader:
             raise ValueError("Failed to upload or get the outline")
         examtool_outline.merge_gs_outline_ids(outline)
 
-    def upload_student_submissions(self, out: str, gs_class_id: str, assignment_id: str):
+    def upload_student_submissions(self, out: str, gs_class_id: str, assignment_id: str, emails: [str] = None):
+        failed_emails = []
         for file_name in os.listdir(out):
             if "@" not in file_name:
                 continue
             student_email = file_name[:-4]
-            self.gs_api_client.upload_submission(gs_class_id, assignment_id, student_email, os.path.join(out, file_name))
+            if emails and student_email not in emails:
+                continue
+            if not self.gs_api_client.upload_submission(gs_class_id, assignment_id, student_email, os.path.join(out, file_name)):
+                failed_emails.append(student_email)
+        return failed_emails
 
     def set_group_types(self, outline: GS_Outline, debug=True):
         for qid, question in outline.questions_iterator():
@@ -464,6 +537,7 @@ class GradescopeGrader:
                 solution = solution.get("text")
         if not solution:
             print(f"[{qid}]: No solution defined for this question! Only grouping blank and std did not receive.")
+            solution = "Correct"
         correct_seq = [True]
         seq_name = [solution]
 
@@ -594,7 +668,7 @@ class GradescopeGrader:
                     else:
                         flip_g_name = g_name[:-2][::-1]
                         if gs_group["internal_title"] is not None:
-                            if flip_g_name == gs_group["internal_title"]:
+                            if flip_g_name == gs_group["internal_title"] and g_name[len(g_name) - 1] != "1":
                                 set_group(g_name, data, gs_group)
                         else:
                             if g_name == gs_group["title"]:
@@ -649,7 +723,7 @@ class GradescopeGrader:
         for name, score in zip(seq_names, rubric_scores):
             for existing_rubric_item in existing_rubric_items:
                 if existing_rubric_item.description == name:
-                    if float(existing_rubric_item.score) != score:
+                    if float(existing_rubric_item.weight) != score:
                         rubric.update_rubric_item(existing_rubric_item, weight=score)
                     break
             else:
@@ -704,13 +778,13 @@ class GradescopeGrader:
 
     def grade_question(self, question: GS_Question, rubric: QuestionRubric, groups: dict):
         question_data = question.get_question_info()
-        sub_id_mapping = {sub["id"]: sub for sub in question_data["submissions"]}
+        sub_id_mapping = {str(sub["id"]): sub for sub in question_data["submissions"]}
         for group_name, group_data in groups["groups"].items():
             group_sel = group_data["sel_seq"]
             group_sids = group_data["sids"]
             if len(group_sids) > 0:
                 sid = group_sids[0]
-                if not sub_id_mapping[sid]["graded"]:
+                if not sub_id_mapping[str(sid)]["graded"]:
                     if not rubric.grade(sid, group_sel, save_group=True):
                         print(f"Failed to grade group {group_name}!")
 

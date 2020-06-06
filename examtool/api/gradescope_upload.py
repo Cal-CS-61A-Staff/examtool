@@ -36,7 +36,7 @@ class APIClient:
         while num_attempts < 5:  # Control how many times to retry
             r = self.post(url, data=form_data, headers=request_headers, files=files)
             if r.ok:
-                return
+                return True
             num_attempts += 1
 
         # Report error
@@ -49,3 +49,4 @@ class APIClient:
             for line in error_lines:
                 print(line)
         print("Upload URL:", url)
+        return False
