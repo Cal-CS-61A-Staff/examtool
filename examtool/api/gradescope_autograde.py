@@ -350,18 +350,25 @@ class GradescopeGrader:
 
     def upload_student_submissions(self, out: str, gs_class_id: str, assignment_id: str, emails: [str] = None):
         failed_emails = []
+        email_files = []
         for file_name in os.listdir(out):
             if "@" not in file_name:
                 continue
             student_email = file_name[:-4]
             if emails and student_email not in emails:
                 continue
+            email_files.append((file_name, student_email))
+        for i, (file_name, student_email) in enumerate(email_files):
+            print(f"Uploading {i + 1} / {len(email_files)}", end="\r")
             if not self.gs_api_client.upload_submission(gs_class_id, assignment_id, student_email, os.path.join(out, file_name)):
                 failed_emails.append(student_email)
         return failed_emails
 
     def set_group_types(self, outline: GS_Outline, debug=True):
-        for qid, question in outline.questions_iterator():
+        questions = list(outline.questions_iterator())
+        qlen = len(questions)
+        for i, (qid, question) in enumerate(questions):
+            print(f"Setting group type {i + 1} / {qlen}", end="\r")
             self.set_group_type(question)
     
     def set_group_type(self, o_question: GS_Outline_Question):
@@ -662,9 +669,12 @@ class GradescopeGrader:
         Groups is a list of name, submission_id, selected answers
         """
         failed_groups_names = []
+        i = 1
+        max_dots = 4
         while not question.is_grouping_ready():
             timeout = 5
-            print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds.")
+            print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds" + ("." * (1 + (i % max_dots))), end="\r")
+            i += 1
             time.sleep(timeout)
         gradescope_groups = question.get_groups()
         gdata = groups["groups"]
@@ -697,7 +707,8 @@ class GradescopeGrader:
 
         max_attempts = 5
         attempt = 1
-        for g_name, data in gdata.items():
+        for i, (g_name, data) in enumerate(gdata.items()):
+            print(f"Syncing group {i + 1} / {len(gdata.items())}", end="\r")
             sids = data["sids"]
             if not sids:
                 # We do not want to create groups which no questions exist.
@@ -735,7 +746,8 @@ class GradescopeGrader:
                 if not rubric.update_rubric_item(default_rubric_item, description=seq_names[0]):
                     print(f"[{qid}]: Failed to update default \"Correct\" rubric item!")
         existing_rubric_items = rubric.get_rubric_items()
-        for name, score in zip(seq_names, rubric_scores):
+        for i, (name, score) in enumerate(zip(seq_names, rubric_scores)):
+            print(f"Syncing rubric {i + 1} / {len(seq_names)}", end="\r")
             for existing_rubric_item in existing_rubric_items:
                 if existing_rubric_item.description == name:
                     if float(existing_rubric_item.weight) != score:
@@ -794,7 +806,9 @@ class GradescopeGrader:
     def grade_question(self, question: GS_Question, rubric: QuestionRubric, groups: dict):
         question_data = question.get_question_info()
         sub_id_mapping = {str(sub["id"]): sub for sub in question_data["submissions"]}
-        for group_name, group_data in groups["groups"].items():
+        glen = len(groups["groups"].items())
+        for i, (group_name, group_data) in enumerate(groups["groups"].items()):
+            print(f"Grading {i + 1} / {glen}", end="\r")
             group_sel = group_data["sel_seq"]
             group_sids = group_data["sids"]
             if len(group_sids) > 0:

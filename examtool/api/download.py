@@ -109,7 +109,9 @@ def export(template_questions, student_responses, total, exam, out, name_questio
         )
         pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
-    for email, data in student_responses.items():
+    srlen = len(student_responses.items())
+    for i, (email, data) in enumerate(student_responses.items()):
+        print(f"[{exam}]: Exporting {i + 1} / {srlen}", end="\r")
         pdf = write_exam(
             data.get("responses"),
             exam,
@@ -140,7 +142,10 @@ def download(exam, emails_to_download: [str]=None, debug: bool=False):
 
     email_to_data_map = {}
 
+    i = 1
     for email, response in get_submissions(exam=exam):
+        print(f"[{exam}]: Downloading {i}...", end="\r")
+        i += 1
         if emails_to_download is not None and email not in emails_to_download:
             continue
 
