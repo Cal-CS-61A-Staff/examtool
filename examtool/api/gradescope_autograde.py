@@ -670,12 +670,12 @@ class GradescopeGrader:
         """
         failed_groups_names = []
         i = 1
-        max_dots = 4
         while not question.is_grouping_ready():
             timeout = 5
-            print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds" + ("." * (1 + (i % max_dots))), end="\r")
-            i += 1
-            time.sleep(timeout)
+            print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds" + (" " * timeout), end="\r")
+            for i in range (timeout):
+                print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds" + ("." * (1 + i)), end="\r")
+                time.sleep(1)
         gradescope_groups = question.get_groups()
         gdata = groups["groups"]
         def all_zeros(s: str):

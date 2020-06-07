@@ -144,7 +144,7 @@ def download(exam, emails_to_download: [str]=None, debug: bool=False):
 
     i = 1
     for email, response in get_submissions(exam=exam):
-        print(f"[{exam}]: Downloading {i}...", end="\r")
+        print(f"[{exam}]: Downloading {i}", end="\r")
         i += 1
         if emails_to_download is not None and email not in emails_to_download:
             continue
