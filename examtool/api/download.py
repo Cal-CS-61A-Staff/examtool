@@ -42,8 +42,7 @@ def write_exam(
 
         out("\nANSWER")
 
-        if question.get("type") not in ["multiple_choice", "select_all"]:
-            force_new = True
+        pdf.add_page()
 
         if question.get("type") in ["multiple_choice", "select_all"]:
             selected_options = response.get(question["id"], [])
