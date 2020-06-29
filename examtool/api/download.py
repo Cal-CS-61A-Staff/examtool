@@ -36,13 +36,13 @@ def write_exam(
     student_question_lookup = {q["id"]: q for q in student_questions}
 
     for question in template_questions:
+        pdf.add_page()
+
         out("\nQUESTION")
         for line in question["text"].split("\n"):
             out(line)
 
         out("\nANSWER")
-
-        pdf.add_page()
 
         if question.get("type") in ["multiple_choice", "select_all"]:
             selected_options = response.get(question["id"], [])
