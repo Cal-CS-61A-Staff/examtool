@@ -59,7 +59,7 @@ def scramble(email, exam, *, keep_data=False):
 
         if keep_data and "solution" in question:
             solution = question["solution"]
-            if solution.get("solution"):
+            if solution.get("solution") is not None:
                 substitute(
                     solution["solution"], [question_substitutions, *substitutions], ["html", "tex", "text"], store=False
                 )

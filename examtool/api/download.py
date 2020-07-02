@@ -37,14 +37,15 @@ def write_exam(
 
     for question in template_questions:
         pdf.add_page()
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
         out("\nQUESTION")
         for line in question["text"].split("\n"):
             out(line)
 
         out("\nANSWER")
-
-        if question.get("type") not in ["multiple_choice", "select_all"]:
-            force_new = True
 
         if question.get("type") in ["multiple_choice", "select_all"]:
             selected_options = response.get(question["id"], [])

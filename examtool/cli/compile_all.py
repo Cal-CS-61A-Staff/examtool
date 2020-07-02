@@ -21,8 +21,13 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option, pr
 @hidden_output_folder_option
 @click.option("--do-twice", is_flag=True, help="Run the compile twice for each student to fix weird rendering bugs.")
 @click.option("--email", help="The email address of a particular student.")
+@click.option(
+    "--exam-type",
+    default="Final Exam",
+    help="The type of exam you are given. For example 'Final Exam' (default).",
+)
 @click.option("--deadline", default=None, help="Generates exam regardless of if student is in roster with the set deadline.")
-def compile_all(exam, subtitle, out, do_twice, email, deadline):
+def compile_all(exam, subtitle, out, do_twice, email, exam_type, deadline):
     """
     Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
@@ -66,6 +71,7 @@ def compile_all(exam, subtitle, out, do_twice, email, deadline):
                 "deadline": deadline_string,
                 "coursecode": prettify(exam.split("-")[0]),
                 "description": subtitle,
+                "examtype": exam_type,
             },
             do_twice=do_twice,
         ) as pdf:
