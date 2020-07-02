@@ -118,7 +118,7 @@ def scramble_keep_fixed(objects):
 
 
 def get_elements(group):
-    return group.get("elements") or group.get("questions")
+    return group.get("elements") if "elements" in group else group.get("questions")
 
 
 def select(substitutions):
