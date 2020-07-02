@@ -36,13 +36,18 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option, pr
 @click.option("--subtitle", prompt=False, default="Sample Exam.")
 @click.option("--with-solutions/--without-solutions", default=True, help="Generates the exam with (default) or without solutions.")
 @click.option(
+    "--exam-type",
+    default="Final Exam",
+    help="The type of exam you are given. For example 'Final Exam' (default).",
+)
+@click.option(
     "--json-out",
     default=None,
     type=click.File("w"),
     help="Exports the JSON to the file specified."
 )
 @hidden_output_folder_option
-def compile(exam, json, md, seed, subtitle, with_solutions, json_out, out):
+def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, json_out, out):
     """
     Compile one PDF or JSON (from Markdown), unencrypted.
     The exam may be deployed or local (in Markdown or JSON).
@@ -77,6 +82,7 @@ def compile(exam, json, md, seed, subtitle, with_solutions, json_out, out):
     settings = {
         "coursecode": prettify(exam.split("-")[0]),
         "description": subtitle,
+        "examtype": exam_type,
     }
     if seed:
         settings["emailaddress"] = sanitize_email(seed)
