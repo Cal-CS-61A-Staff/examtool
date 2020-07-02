@@ -37,10 +37,6 @@ def write_exam(
 
     for question in template_questions:
         pdf.add_page()
-<<<<<<< HEAD
-=======
-
->>>>>>> master
         out("\nQUESTION")
         for line in question["text"].split("\n"):
             out(line)
