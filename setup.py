@@ -17,9 +17,9 @@ setup(
     include_package_data=True,
     entry_points={"console_scripts": ["examtool=examtool.cli.__main__:cli"]},
     python_requires=">=3.6",
-    install_requires=["cryptography", "func-timeout"],
+    install_requires=["cryptography"],
     extras_require={
         "admin": ["pytz", "requests", "pypandoc", "google-cloud-firestore", "google-auth", "sendgrid"],
-        "cli": ["click", "pikepdf", "pytz", "requests", "fpdf", "pypandoc", "sendgrid"],
+        "cli": ["click", "pikepdf", "pytz", "requests", "fpdf", "pypandoc", "sendgrid", "func-timeout"],
     },
 )

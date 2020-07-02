@@ -1,7 +1,6 @@
 import os
 
 from examtool.api.server_delegate import server_only
-from func_timeout import func_timeout, FunctionTimedOut
 
 from sendgrid import SendGridAPIClient
 
@@ -36,6 +35,7 @@ def send_email_local_safe(key, data, timeout=10):
     Sends an email, and raises a BadResponse if either the response code is not
         2xx or it takes more than `timeout` seconds to respond
     """
+    from func_timeout import func_timeout, FunctionTimedOut
     try:
         def do_send_email():
             sg = SendGridAPIClient(key)
