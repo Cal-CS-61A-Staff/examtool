@@ -11,7 +11,7 @@ from examtool.api.database import get_exam
 from examtool.api.gen_latex import render_latex
 from examtool.api.utils import sanitize_email
 from examtool.api.scramble import scramble
-from examtool.cli.utils import exam_name_option, hidden_output_folder_option, prettify
+from examtool.cli.utils import determine_semester, exam_name_option, hidden_output_folder_option, prettify
 
 
 @click.command()
@@ -41,13 +41,18 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option, pr
     help="The type of exam you are given. For example 'Final Exam' (default).",
 )
 @click.option(
+    "--semester",
+    default=determine_semester(),
+    help=f"The semester of the exam. '{determine_semester()}' (default).",
+)
+@click.option(
     "--json-out",
     default=None,
     type=click.File("w"),
     help="Exports the JSON to the file specified."
 )
 @hidden_output_folder_option
-def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, json_out, out):
+def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester, json_out, out):
     """
     Compile one PDF or JSON (from Markdown), unencrypted.
     The exam may be deployed or local (in Markdown or JSON).
@@ -83,6 +88,7 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, json_out,
         "coursecode": prettify(exam.split("-")[0]),
         "description": subtitle,
         "examtype": exam_type,
+        "semester": semester,
     }
     if seed:
         settings["emailaddress"] = sanitize_email(seed)
