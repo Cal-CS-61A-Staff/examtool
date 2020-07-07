@@ -29,7 +29,11 @@ class APIClient:
         self.token = r.json()['token']
 
     def post(self, *args, **kwargs):
-        return self.session.post(*args, **kwargs)
+        while True:
+            try:
+                return self.session.post(*args, **kwargs, timeout=30)
+            except requests.exceptions.ReadTimeout:
+                print("timeout error on POST", args, kwargs, "retrying")
 
     def upload_submission(self, course_id, assignment_id, student_email, filename):
         url = GRADESCOPE_URL.format(course_id, assignment_id)
