@@ -400,11 +400,9 @@ class GradescopeGrader:
             # Group answers
             print(f"Syncing groups on gradescope...")
             self.sync_groups_on_gradescope(qid, question, groups)
-            # TODO Add rubrics
             print(f"Syncing rubric items...")
             rubric = self.sync_rubric(qid, question, groups)
             # in here, add check to see if qid is equal to either name or sid q id so we do not group those.
-            # TODO Grade questions
             print(f"Applying grades for each group...")
             self.grade_question(question, rubric, groups)
         else:
