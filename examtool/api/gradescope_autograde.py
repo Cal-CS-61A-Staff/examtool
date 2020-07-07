@@ -101,7 +101,7 @@ class GradescopeGrader:
             for email in failed_uploads:
                 email_to_data_map.pop(email)
 
-        # TODO For each question, group, add rubric and grade
+        # For each question, group, add rubric and grade
         print("Setting the grade type for grouping for each question...")
         gs_outline = examtool_outline.get_gs_outline()
         self.set_group_types(gs_outline)
@@ -390,7 +390,7 @@ class GradescopeGrader:
         name_question_id: str, 
         sid_question_id: str
         ):
-        # TODO Group questions
+        # Group questions
         if question.data.get("id") in [name_question_id, sid_question_id]:
             print("Skipping grouping of an id question!")
             return
