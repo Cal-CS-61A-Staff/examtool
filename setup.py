@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name="examtool",
-    version="1.7.0",
+    version="2.0.0",
     author="Rahul Arya",
     author_email="rahularya@berkeley.edu",
     long_description=readme,
@@ -20,6 +20,6 @@ setup(
     install_requires=["cryptography"],
     extras_require={
         "admin": ["pytz", "requests", "pypandoc", "google-cloud-firestore", "google-auth", "sendgrid"],
-        "cli": ["click", "pikepdf", "pytz", "requests", "fpdf", "pypandoc", "sendgrid", "fullGSapi"],
+        "cli": ["click", "pikepdf", "pytz", "requests", "fpdf", "pypandoc", "sendgrid", "func-timeout", "fullGSapi"],
     },
 )

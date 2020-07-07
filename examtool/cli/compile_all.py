@@ -12,7 +12,7 @@ from examtool.api.database import get_exam, get_roster
 from examtool.api.utils import sanitize_email
 from examtool.api.scramble import scramble
 from examtool.api.gen_latex import render_latex
-from examtool.cli.utils import exam_name_option, hidden_output_folder_option, prettify
+from examtool.cli.utils import determine_semester, exam_name_option, hidden_output_folder_option, prettify
 
 
 @click.command()
@@ -26,8 +26,13 @@ from examtool.cli.utils import exam_name_option, hidden_output_folder_option, pr
     default="Final Exam",
     help="The type of exam you are given. For example 'Final Exam' (default).",
 )
+@click.option(
+    "--semester",
+    default=determine_semester(),
+    help=f"The semester of the exam. '{determine_semester()}' (default).",
+)
 @click.option("--deadline", default=None, help="Generates exam regardless of if student is in roster with the set deadline.")
-def compile_all(exam, subtitle, out, do_twice, email, exam_type, deadline):
+def compile_all(exam, subtitle, out, do_twice, email, exam_type, semester, deadline):
     """
     Compile individualized PDFs for the specified exam.
     Exam must have been deployed first.
@@ -72,6 +77,7 @@ def compile_all(exam, subtitle, out, do_twice, email, exam_type, deadline):
                 "coursecode": prettify(exam.split("-")[0]),
                 "description": subtitle,
                 "examtype": exam_type,
+                "semester": semester,
             },
             do_twice=do_twice,
         ) as pdf:
