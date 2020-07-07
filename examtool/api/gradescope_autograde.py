@@ -247,7 +247,7 @@ class GradescopeGrader:
             # Next, we want to mutate any emails
             for orig_email, new_email in email_mutation_list.items():
                 if orig_email not in tmp_email_to_data_map:
-                    # print(f"WARNING: Could not perform mutation on email {orig_email} (to {new_email}) because it does not exist in the data map!")
+                    print(f"WARNING: Could not perform mutation on email {orig_email} (to {new_email}) because it does not exist in the data map!")
                     continue
                 if new_email in tmp_email_to_data_map:
                     print(f"Could not mutate email {new_email} (from {orig_email}) as the original email is already in the data map!")
