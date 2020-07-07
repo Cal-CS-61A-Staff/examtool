@@ -1,4 +1,4 @@
-from examtool.api.scramble import is_compresable_group
+from examtool.api.scramble import is_compressible_group
 
 def extract_questions(exam, extract_public_bool: bool=True, top_level: bool=True):
     if extract_public_bool:
@@ -35,7 +35,7 @@ def extract_public(exam):
 
 def extract_groups(group):
     for g in group["groups"]:
-        if is_compresable_group(g):
+        if is_compressible_group(g):
             for g2 in g["elements"]:
                 yield g2
         else:
