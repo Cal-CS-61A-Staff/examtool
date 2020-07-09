@@ -39,7 +39,7 @@ def write_exam(
         pdf.add_page()
         out("\nQUESTION")
         for line in question["text"].split("\n"):
-            out(line)
+            out(line.encode("latin-1", "replace").decode("latin-1"))
 
         out("\nANSWER")
 
@@ -68,6 +68,7 @@ def write_exam(
                 )
             for template, option in zip(available_options, student_options):
                 if option in selected_options:
+                    template = template.encode("latin-1", "replace").decode("latin-1")
                     out("[X] " + template)
                 else:
                     out("[ ] " + template)
@@ -82,7 +83,7 @@ def write_exam(
 
         out("\nAUTOGRADER")
         if question["id"] in student_question_lookup and question["id"] in response:
-            out(grade(student_question_lookup[question["id"]], response, dispatch))
+            out(grade(student_question_lookup[question["id"]], response, dispatch).encode("latin-1", "replace").decode("latin-1"))
         elif question["id"] not in student_question_lookup:
             out("STUDENT DID NOT RECEIVE QUESTION")
         else:
