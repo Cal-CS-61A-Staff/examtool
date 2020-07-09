@@ -50,7 +50,16 @@ def deploy(exam, json, roster, default_deadline):
     set_exam(exam=exam, json=json)
 
     next(roster)  # ditch headers
-    set_roster(exam=exam, roster=list(roster))
+    roster = list(roster)
+
+    # Dupe Check
+    emails = set()
+    for email, deadline in roster:
+        if email in emails:
+            raise ValueError(f"Email {email} has a duplicate entry in the roster!")
+        emails.add(email)
+
+    set_roster(exam=exam, roster=roster)
 
     print("Exam uploaded with password:", json["secret"][:-1])
 
