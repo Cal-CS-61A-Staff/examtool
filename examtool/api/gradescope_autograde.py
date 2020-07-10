@@ -120,7 +120,12 @@ class GradescopeGrader:
                 print(f"[{qid}]: Skipping!")
                 continue
             print(f"[{qid}]: Processing question...")
-            self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
+            try:
+                self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                print(e)
 
     def add_additional_exams(
         self,
@@ -201,7 +206,12 @@ class GradescopeGrader:
                 print(f"[{qid}]: Skipping!")
                 continue
             print(f"[{qid}]: Processing question...")
-            self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
+            try:
+                self.process_question(qid, question.get_gs_question(), email_to_data_map, email_to_question_sub_id, name_question_id, sid_question_id)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                print(e)
 
     
     def fetch_and_export_examtool_exam_data(
