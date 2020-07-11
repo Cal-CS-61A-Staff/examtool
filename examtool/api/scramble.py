@@ -79,8 +79,6 @@ def scramble(email, exam, *, keep_data=False):
             question.pop("solution", None)
 
     def substitute(target: dict, list_substitutions, attrs, *, store=True):
-        print(target, attrs, list_substitutions)
-        print("\n")
         merged = {}
         for substitutions in list_substitutions:
             merged = {**merged, **substitutions}
