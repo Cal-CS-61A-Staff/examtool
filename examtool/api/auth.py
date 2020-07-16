@@ -125,7 +125,11 @@ def _get_code():
         "scope": OAUTH_SCOPE,
     }
     url = "{}{}?{}".format(OK_SERVER_URL, AUTH_ENDPOINT, urlencode(params))
-    assert webbrowser.open_new(url)
+    if not webbrowser.open_new(url):
+        print("You appear to be running on a server.")
+        print("Please run the following locally")
+        print("    examtool login ; cat .token ; echo")
+        return input("The output of the above command: ").strip()
 
     server = OK_SERVER_URL
     code_response = None
