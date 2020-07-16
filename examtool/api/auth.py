@@ -129,7 +129,8 @@ def _get_code():
         print("You appear to be running on a server.")
         print("Please run the following locally")
         print("    examtool login ; cat .token ; echo")
-        return input("The output of the above command: ").strip()
+        access_token = input("The output of the above command: ").strip()
+        return access_token, None, None
 
     server = OK_SERVER_URL
     code_response = None
