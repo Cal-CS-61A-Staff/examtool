@@ -832,8 +832,8 @@ class GradescopeGrader:
 
 
 class ExamtoolOutline:
-    name_region = GS_Crop_info(1, 2.4, 11.4, 100, 18.8)
-    sid_region = GS_Crop_info(1, 2.4, 18.9, 100, 28.7)
+    name_region = GS_Crop_info(1, 2.4, 11.4, 99, 18.8)
+    sid_region = GS_Crop_info(1, 2.4, 18.9, 99, 28.7)
 
     def __init__(self, grader: GS_assignment_Grader, exam_json: dict, id_question_ids: [str]):
         self.exam_json = exam_json
