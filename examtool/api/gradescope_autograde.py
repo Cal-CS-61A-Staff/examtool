@@ -678,12 +678,16 @@ class GradescopeGrader:
         """
         failed_groups_names = []
         i = 1
+        failed = False
         while not question.is_grouping_ready():
             timeout = 5
             print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds" + (" " * timeout), end="\r")
             for i in range (timeout):
                 print(f"[{qid}]: Question grouping not ready! Retrying in {timeout} seconds" + ("." * (1 + i)), end="\r")
                 time.sleep(1)
+            failed = True
+        if failed:
+            print("")
         gradescope_groups = question.get_groups()
         gdata = groups["groups"]
         def all_zeros(s: str):
@@ -836,7 +840,7 @@ class ExamtoolOutline:
         self.gs_number_to_exam_q, self.gs_outline = self.generate_gs_outline(grader, exam_json, id_question_ids)
 
     def get_gs_crop_info(self, page, question=None):
-        return GS_Crop_info(page, 5, 0, 95, 100)
+        return GS_Crop_info(page, 5, 5, 95, 95)
 
     def question_to_gso_question(self, grader: GS_assignment_Grader, page, question: dict) -> GS_Outline_Question:
         weight = question.get("points")
