@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name="examtool",
-    version="1.6.14",
+    version="1.6.15",
     author="Rahul Arya",
     author_email="rahularya@berkeley.edu",
     long_description=readme,

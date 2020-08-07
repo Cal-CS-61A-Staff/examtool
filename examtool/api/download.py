@@ -31,7 +31,9 @@ def write_exam(
     pdf.set_font("Courier", size=9)
 
     def out(text):
-        pdf.multi_cell(200, 5, txt=text, align="L")
+        pdf.multi_cell(
+            200, 5, txt=text.encode("latin-1", "replace").decode("latin-1"), align="L"
+        )
 
     student_question_lookup = {q["id"]: q for q in student_questions}
 
@@ -51,23 +53,35 @@ def write_exam(
             ):
                 selected_options = [selected_options]
             available_options = sorted(
-                [option["text"] for option in question["options"]]
+                [(i, option["text"]) for i, option in enumerate(question["options"])]
             )
             if question["id"] not in student_question_lookup:
                 student_options = sorted(
                     [
-                        option["text"]
-                        for option in question["options"]
+                        (option.get("index", i), option["text"])
+                        for i, option in enumerate(question["options"])
                     ]
                 )
             else:
                 student_options = sorted(
                     [
-                        option["text"]
-                        for option in student_question_lookup[question["id"]]["options"]
+                        (option.get("index", i), option["text"])
+                        for i, option in enumerate(
+                            student_question_lookup[question["id"]]["options"]
+                        )
                     ]
                 )
-            for template, option in zip(available_options, student_options):
+
+            available_options = [
+                (*available_option, option)
+                for available_option, (j, option) in zip(
+                    available_options, student_options
+                )
+            ]
+
+            available_options.sort(key=lambda x: x[1])
+
+            for i, template, option in available_options:
                 if option in selected_options:
                     out("[X] " + template)
                 else:

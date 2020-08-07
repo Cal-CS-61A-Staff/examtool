@@ -92,6 +92,20 @@ def scramble(email, exam, *, keep_data=False):
             else:
                 target.pop("substitutions", None)
 
+    def scramble_keep_fixed(objects):
+        if keep_data:
+            for i, object in enumerate(objects):
+                object["index"] = i
+        movable_object_pos = []
+        movable_object_values = []
+        for i, object in enumerate(objects):
+            if not object.get("fixed"):
+                movable_object_pos.append(i)
+                movable_object_values.append(object)
+        random.shuffle(movable_object_values)
+        for i, object in zip(movable_object_pos, movable_object_values):
+            objects[i] = object
+
     global_substitutions = select(exam["substitutions"])
     global_substitutions.update(select_no_replace(exam.get("substitutions_match", [])))
     exam["config"]["scramble_groups"] = exam["config"].get(
@@ -104,18 +118,6 @@ def scramble(email, exam, *, keep_data=False):
     exam.pop("config", None)
 
     return exam
-
-
-def scramble_keep_fixed(objects):
-    movable_object_pos = []
-    movable_object_values = []
-    for i, object in enumerate(objects):
-        if not object.get("fixed"):
-            movable_object_pos.append(i)
-            movable_object_values.append(object)
-    random.shuffle(movable_object_values)
-    for i, object in zip(movable_object_pos, movable_object_values):
-        objects[i] = object
 
 
 def get_elements(group):
