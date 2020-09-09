@@ -6,7 +6,7 @@ from json import load, dump
 import click
 from pikepdf import Pdf
 
-from examtool.api.convert import convert
+from examtool.api.convert import convert, handle_imports, LineBuffer
 from examtool.api.database import get_exam
 from examtool.api.gen_latex import render_latex
 from examtool.api.utils import sanitize_email
@@ -51,8 +51,14 @@ from examtool.cli.utils import determine_semester, exam_name_option, hidden_outp
     type=click.File("w"),
     help="Exports the JSON to the file specified."
 )
+@click.option(
+    "--merged-md",
+    default=None,
+    type=click.File("w"),
+    help="Merges any imports into a single file."
+)
 @hidden_output_folder_option
-def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester, json_out, out):
+def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester, json_out, merged_md, out):
     """
     Compile one PDF or JSON (from Markdown), unencrypted.
     The exam may be deployed or local (in Markdown or JSON).
@@ -67,9 +73,14 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
         print("Loading exam...")
         exam_data = load(json)
     elif md:
-        print("Compiling exam...")
         exam_text_data = md.read()
-        exam_data = convert(exam_text_data)
+        if merged_md:
+            buff = LineBuffer(exam_text_data)
+            handle_imports(buff, path=os.path.dirname(md.name))
+            merged_md.write("\n".join(buff.lines))
+            return
+        print("Compiling exam...")
+        exam_data = convert(exam_text_data, path=os.path.dirname(md.name))
     else:
         print("Fetching exam...")
         exam_data = get_exam(exam=exam)
@@ -77,6 +88,19 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
     if seed:
         print("Scrambling exam...")
         exam_data = scramble(seed, exam_data, keep_data=with_solutions)
+    
+
+    def remove_solutions_from_groups(groups):
+        for group in groups:
+            # if isinstance(group, dict):
+            group.pop("solution", None) 
+            if group.get("type") == "group":
+                remove_solutions_from_groups(group.get("elements", []))
+
+    if not seed and not with_solutions:
+        print("Removing solutions...")
+        groups = exam_data.get("groups", [])
+        remove_solutions_from_groups(groups)
 
     if json_out:
         print("Dumping json...")

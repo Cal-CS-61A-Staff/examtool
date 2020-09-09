@@ -29,11 +29,8 @@ def scramble(email, exam, *, keep_data=False):
                 scramble_question(
                     element, [*substitutions, group_substitutions], config
                 )
-        if (
-            group.get("pick_some") == 1
-            and not group["name"].strip()
-            and group["points"] is None
-        ):
+
+        if is_compressible_group(group):
             text, html, tex = group["text"], group["html"], group["tex"]
             element = get_elements(group)[0]
             if element.get("type") != "group" and depth == 1:
@@ -68,13 +65,15 @@ def scramble(email, exam, *, keep_data=False):
                 substitute(
                     solution["solution"], [question_substitutions, *substitutions], ["html", "tex", "text"], store=False
                 )
-            elif solution["options"] is not None:
-                substitute(
-                    solution["options"],
-                    [question_substitutions, *substitutions],
-                    range(len(solution["options"])),
-                    store=False,
-                )
+            else:
+                options = solution["options"]
+                if options:
+                    substitute(
+                        options,
+                        [question_substitutions, *substitutions],
+                        range(len(options)),
+                        store=False,
+                    )
         else:
             question.pop("solution", None)
 
@@ -144,3 +143,7 @@ def select_no_replace(substitutions_match):
             values.remove(c)
             out[choice] = c
     return out
+
+
+def is_compressible_group(group):
+    return group.get("pick_some") == 1 and not group["name"].strip() and group["points"] is None

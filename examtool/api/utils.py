@@ -7,5 +7,8 @@ def as_list(func):
         return list(func(*args, **kwargs))
     return wrapped
 
+
 def sanitize_email(email):
     return email.replace("_", r"\_")
+
+

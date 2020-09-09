@@ -2,8 +2,11 @@ import json
 import random
 import re
 import string
+import os
 
 import pypandoc
+
+from tqdm import tqdm
 
 html_convert = lambda x: pypandoc.convert_text(x, "html5", "md", ["--mathjax"])
 tex_convert = lambda x: pypandoc.convert_text(x, "latex", "md")
@@ -11,23 +14,50 @@ tex_convert = lambda x: pypandoc.convert_text(x, "latex", "md")
 
 class LineBuffer:
     def __init__(self, text):
-        self.lines = text.strip().split("\n")
+        self.lines = []
         self.i = 0
+        self.insert_next(text)
+        self.onpop = lambda x: None
+    
+    def insert_next(self, text):
+        if isinstance(text, list):
+            new_lines = text
+        elif isinstance(text, str):
+            new_lines = text.strip().split("\n")
+        elif isinstance(text, LineBuffer):
+            new_lines = text.lines
+            self.i += text.i
+        else:
+            raise SyntaxError(f"LineBuffer: unsupported type to insert: {type(text)}")
+        self.lines = self.lines[:self.i] + new_lines + self.lines[self.i:]
 
     def pop(self) -> str:
         if self.i == len(self.lines):
             raise SyntaxError("File terminated unexpectedly")
         self.i += 1
+        self.onpop(self)
         return self.lines[self.i - 1]
+
+    def remove_prev(self):
+        self.i -= 1
+        if self.i < 0:
+            self.i = 0
+        del self.lines[self.i]
 
     def empty(self):
         return self.i == len(self.lines)
+
+    def reset(self):
+        self.i = 0
+
+    def location(self):
+        return self.i
 
 
 def parse_directive(line):
     if not any(
             line.startswith(f"# {x} ")
-            for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE"]
+            for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE", "IMPORT"]
     ):
         return None, None, None
     tokens = line.split(" ", 3)
@@ -101,7 +131,7 @@ def parse_input_lines(lines):
     correct_options = []
     if directive == "OPTION" or directive == "SELECT":
         options = []
-        for line in lines:
+        for line in tqdm(lines, unit="line", dynamic_ncols=True, leave=False, desc="Question Options"):
             _, other_directive, rest = parse_directive(line)
             if other_directive != directive:
                 raise SyntaxError("Multiple INPUT types found in a single QUESTION")
@@ -163,9 +193,9 @@ def consume_rest_of_solution(buff, end):
             if directive == end:
                 return parse("\n".join(out))
             else:
-                raise SyntaxError("Unexpected END in SOLUTION")
+                raise SyntaxError(f"Unexpected END ({directive if directive else line}) in SOLUTION")
         else:
-            raise SyntaxError("Unexpected directive in SOLUTION")
+            raise SyntaxError(f"Unexpected directive ({mode if mode else line}) in SOLUTION")
 
 
 def consume_rest_of_question(buff):
@@ -192,7 +222,7 @@ def consume_rest_of_question(buff):
             elif directive == "NOTE":
                 solution_note = consume_rest_of_solution(buff, directive)
             else:
-                raise SyntaxError("Unexpected BEGIN in QUESTION")
+                raise SyntaxError(f"Unexpected BEGIN ({directive if directive else line}) in QUESTION")
         elif mode == "END":
             if directive == "QUESTION":
                 question_type, options, option_solutions = parse_input_lines(
@@ -217,13 +247,13 @@ def consume_rest_of_question(buff):
                     "substitutions_match": substitutions_match,
                 }
             else:
-                raise SyntaxError("Unexpected END in QUESTION")
+                raise SyntaxError(f"Unexpected END {directive if directive else line} in QUESTION")
         elif mode == "DEFINE":
             parse_define(directive, rest, substitutions, substitutions_match)
         elif mode == "CONFIG":
             config[directive] = rest
         else:
-            raise SyntaxError("Unexpected directive in QUESTION")
+            raise SyntaxError(f"Unexpected directive ({mode if mode else line}) in QUESTION")
 
 
 def consume_rest_of_group(buff, end):
@@ -284,20 +314,24 @@ def consume_rest_of_group(buff, end):
             elif directive == "SCRAMBLE":
                 scramble = True
             else:
-                raise SyntaxError("Unexpected CONFIG directive in GROUP")
+                raise SyntaxError(f"Unexpected CONFIG directive ({directive if directive else line}) in GROUP")
         else:
-            raise SyntaxError("Unexpected directive in GROUP")
+            raise SyntaxError(f"Unexpected directive ({line}) in GROUP")
 
 
-def _convert(text):
+def _convert(text, path=None):
     buff = LineBuffer(text)
     groups = []
     public = None
     config = {}
     substitutions = {}
     substitutions_match = []
-
+    pbar = None
     try:
+        if path is not None:
+            handle_imports(buff, path)
+        pbar = tqdm(total=len(buff.lines), unit="line", dynamic_ncols=True)
+        buff.onpop = lambda b: pbar.update()
         while not buff.empty():
             line = buff.pop()
             if not line.strip():
@@ -331,9 +365,12 @@ def _convert(text):
             elif mode == "DEFINE":
                 parse_define(directive, rest, substitutions, substitutions_match)
             else:
-                raise SyntaxError("Unexpected directive")
+                raise SyntaxError(f"Unexpected directive: {line}")
+        pbar.close()
     except SyntaxError as e:
-        raise SyntaxError("Parse stopped on line {} with error {}".format(buff.i, e))
+        if pbar:
+            pbar.close()
+        raise SyntaxError("Parse stopped on line {} with error {}".format(buff.location(), e))
 
     return {
         "public": public,
@@ -381,9 +418,30 @@ def pandoc(target):
     return json.dumps(target, default=pandoc_dump)
 
 
-def convert(text):
-    return json.loads(convert_str(text))
+def convert(text, path=None):
+    return json.loads(convert_str(text, path=path))
 
 
-def convert_str(text):
-    return pandoc(_convert(text))
+def convert_str(text, path=None):
+    return pandoc(_convert(text, path=path))
+
+def import_file(filepath: str) -> str:
+    if not filepath:
+        raise SyntaxError("IMPORT must take in a filepath")
+    with open(filepath, "r") as f:
+        return f.read()
+
+def handle_imports(buff: LineBuffer, path: str):
+    while not buff.empty():
+        line = buff.pop()
+        mode, directive, rest = parse_directive(line)
+        if mode == "IMPORT":
+            buff.remove_prev()
+            filepath = " ".join([directive, rest]).rstrip()
+            if path:
+                filepath = os.path.join(path, filepath)
+            new_buff = LineBuffer(import_file(filepath))
+            folderpath = os.path.dirname(filepath)
+            handle_imports(new_buff, folderpath)
+            buff.insert_next(new_buff)
+    buff.reset()

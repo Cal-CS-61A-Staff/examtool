@@ -11,3 +11,5 @@ creds.json
 /build/
 __pycache__/
 examtool.egg-info/
+.token
+.vscode
