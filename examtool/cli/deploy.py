@@ -1,10 +1,15 @@
 import csv
-from json import loads
+from json import dumps, loads
 
 import click
+import requests
 from cryptography.fernet import Fernet
 
+from examtool.api.auth import get_token
+from examtool.api.convert import rand_id
 from examtool.api.database import set_exam, get_exam, set_roster
+from examtool.api.extract_questions import extract_questions
+from examtool.api.scramble import scramble
 from examtool.cli.utils import exam_name_option
 
 
@@ -23,13 +28,19 @@ from examtool.cli.utils import exam_name_option
     help="The roster CSV you wish to deploy.",
 )
 @click.option(
+    "--start-time",
+    prompt=True,
+    type=int,
+    help="The unix timestamp corresponding to the start time of the exam.",
+)
+@click.option(
     "--default-deadline",
     prompt=True,
     default=0,
     type=int,
     help="Specify if you want unregistered students to be able to take the exam, with this as the default deadline.",
 )
-def deploy(exam, json, roster, default_deadline):
+def deploy(exam, json, roster, start_time, default_deadline):
     """
     Deploy an exam to the website. You must specify an exam JSON and associated roster CSV.
     You can deploy the JSON multiple times and the password will remain unchanged.
@@ -37,22 +48,69 @@ def deploy(exam, json, roster, default_deadline):
     json = json.read()
     roster = csv.reader(roster, delimiter=",")
 
-    json = loads(json)
+    exam_content = loads(json)
 
-    json["default_deadline"] = default_deadline
-    json["secret"] = Fernet.generate_key().decode("utf-8")
+    exam_content["default_deadline"] = default_deadline
+    exam_content["secret"] = Fernet.generate_key().decode("utf-8")
 
     try:
-        json["secret"] = get_exam(exam=exam)["secret"]
+        exam_content["secret"] = get_exam(exam=exam)["secret"]
     except:
         pass
 
-    set_exam(exam=exam, json=json)
+    set_exam(exam=exam, json=exam_content)
 
     next(roster)  # ditch headers
-    set_roster(exam=exam, roster=list(roster))
+    roster = list(roster)
+    set_roster(exam=exam, roster=roster)
 
-    print("Exam uploaded with password:", json["secret"][:-1])
+    print("Exam uploaded with password:", exam_content["secret"][:-1])
+
+    print("Initializing announcements...")
+    elements = list(extract_questions(exam_content, include_groups=True))
+    for element in elements:
+        element["id"] = element.get("id", rand_id())  # add IDs to groups
+    elements = {element["id"]: get_name(element) for element in elements}
+    json = dumps(exam_content)  # re-serialize with group IDs
+
+    requests.post(
+        "https://announcements.cs61a.org/upload_ok_exam",
+        json={
+            "data": {
+                "exam_name": exam,
+                "students": [
+                    {
+                        "email": email,
+                        "questions": [
+                            {
+                                "start_time": start_time,
+                                "end_time": int(deadline),
+                                "student_question_name": get_name(element),
+                                "canonical_question_name": elements[element["id"]],
+                            }
+                            for element in list(
+                                extract_questions(scramble(email, loads(json)), include_groups=True)
+                            )
+                        ],
+                        "start_time": start_time,
+                        "end_time": int(deadline),
+                    }
+                    for email, deadline in roster
+                ],
+                "questions": [
+                    {"canonical_question_name": name} for name in elements.values()
+                ],
+            },
+            "secret": get_token(),
+        },
+    )
+
+
+def get_name(element):
+    if "name" in element:
+        return f"{element['index']} {element['name']}"
+    else:
+        return element["index"]
 
 
 if __name__ == "__main__":

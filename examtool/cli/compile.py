@@ -88,12 +88,12 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
     if seed:
         print("Scrambling exam...")
         exam_data = scramble(seed, exam_data, keep_data=with_solutions)
-    
+
 
     def remove_solutions_from_groups(groups):
         for group in groups:
             # if isinstance(group, dict):
-            group.pop("solution", None) 
+            group.pop("solution", None)
             if group.get("type") == "group":
                 remove_solutions_from_groups(group.get("elements", []))
 
@@ -117,7 +117,7 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
     if seed:
         settings["emailaddress"] = sanitize_email(seed)
     with render_latex(
-        exam_data, 
+        exam_data,
         settings,
     ) as pdf:
         pdf = Pdf.open(BytesIO(pdf))
