@@ -73,37 +73,42 @@ def deploy(exam, json, roster, start_time, default_deadline):
     elements = {element["id"]: get_name(element) for element in elements}
     json = dumps(exam_content)  # re-serialize with group IDs
 
+    students = [
+        {
+            "email": email,
+            "questions": [
+                {
+                    "start_time": start_time,
+                    "end_time": int(deadline),
+                    "student_question_name": get_name(element),
+                    "canonical_question_name": elements[element["id"]],
+                }
+                for element in list(
+                    extract_questions(scramble(email, loads(json)), include_groups=True)
+                )
+            ],
+            "start_time": start_time,
+            "end_time": int(deadline),
+        }
+        for email, deadline in roster
+    ]
+
+    if input("Updating announcements roster with {} students. OK? (y/N) ".format(len(students))).strip().lower() != "y":
+        raise KeyboardInterrupt
+
     requests.post(
         "https://announcements.cs61a.org/upload_ok_exam",
         json={
             "data": {
                 "exam_name": exam,
-                "students": [
-                    {
-                        "email": email,
-                        "questions": [
-                            {
-                                "start_time": start_time,
-                                "end_time": int(deadline),
-                                "student_question_name": get_name(element),
-                                "canonical_question_name": elements[element["id"]],
-                            }
-                            for element in list(
-                                extract_questions(scramble(email, loads(json)), include_groups=True)
-                            )
-                        ],
-                        "start_time": start_time,
-                        "end_time": int(deadline),
-                    }
-                    for email, deadline in roster
-                ],
+                "students": students,
                 "questions": [
                     {"canonical_question_name": name} for name in elements.values()
                 ],
             },
             "secret": get_token(),
         },
-    )
+    ).raise_for_status()
 
 
 def get_name(element):
