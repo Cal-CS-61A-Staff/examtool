@@ -20,21 +20,23 @@ def write_exam(
     name_question,
     sid_question,
     dispatch,
+    out=None,
 ):
     pdf = FPDF()
     pdf.add_page()
 
     pdf.set_font("Courier", size=16)
     pdf.multi_cell(200, 20, txt=exam, align="L")
-    pdf.multi_cell(200, 20, txt=response.get(name_question, "NO NAME"), align="L")
-    pdf.multi_cell(200, 20, txt=response.get(sid_question, "NO SID"), align="L")
+    pdf.multi_cell(200, 20, txt=response.get(name_question, "NO NAME").encode("latin-1", "replace").decode("latin-1"), align="L")
+    pdf.multi_cell(200, 20, txt=response.get(sid_question, "NO SID").encode("latin-1", "replace").decode("latin-1"), align="L")
 
     pdf.set_font("Courier", size=9)
 
-    def out(text):
-        pdf.multi_cell(
-            200, 5, txt=text.encode("latin-1", "replace").decode("latin-1"), align="L"
-        )
+    if out is None:
+        def out(text):
+            pdf.multi_cell(
+                200, 5, txt=text.encode("latin-1", "replace").decode("latin-1"), align="L"
+            )
 
     student_question_lookup = {q["id"]: q for q in student_questions}
 
@@ -88,12 +90,7 @@ def write_exam(
                 else:
                     out("[ ] " + template)
         else:
-            for line in (
-                response.get(question["id"], "")
-                .encode("latin-1", "replace")
-                .decode("latin-1")
-                .split("\n")
-            ):
+            for line in response.get(question["id"], "").split("\n"):
                 out(line)
 
         out("\nAUTOGRADER")
@@ -106,7 +103,18 @@ def write_exam(
 
     return pdf
 
-def export(template_questions, student_responses, total, exam, out, name_question, sid_question, dispatch=None, include_outline=True):
+
+def export(
+    template_questions,
+    student_responses,
+    total,
+    exam,
+    out,
+    name_question,
+    sid_question,
+    dispatch=None,
+    include_outline=True,
+):
     out = out or "out/export/" + exam
     pathlib.Path(out).mkdir(parents=True, exist_ok=True)
 
@@ -122,7 +130,9 @@ def export(template_questions, student_responses, total, exam, out, name_questio
         )
         pdf.output(os.path.join(out, "OUTLINE.pdf"))
 
-    for email, data in tqdm(student_responses.items(), desc="Exporting", unit="Exam", dynamic_ncols=True):
+    for email, data in tqdm(
+        student_responses.items(), desc="Exporting", unit="Exam", dynamic_ncols=True
+    ):
         pdf = write_exam(
             data.get("responses"),
             exam,
@@ -139,7 +149,8 @@ def export(template_questions, student_responses, total, exam, out, name_questio
         for row in total:
             writer.writerow(row)
 
-def download(exam, emails_to_download: [str]=None, debug: bool=False):
+
+def download(exam, emails_to_download: [str] = None, debug: bool = False):
     exam_json = get_exam(exam=exam)
     exam_json.pop("secret")
     exam_json = json.dumps(exam_json)
@@ -154,7 +165,9 @@ def download(exam, emails_to_download: [str]=None, debug: bool=False):
     email_to_data_map = {}
 
     i = 1
-    for email, response in tqdm(get_submissions(exam=exam), dynamic_ncols=True, desc="Downloading", unit="Exam"):
+    for email, response in tqdm(
+        get_submissions(exam=exam), dynamic_ncols=True, desc="Downloading", unit="Exam"
+    ):
         i += 1
         if emails_to_download is not None and email not in emails_to_download:
             continue
@@ -172,10 +185,7 @@ def download(exam, emails_to_download: [str]=None, debug: bool=False):
 
         email_to_data_map[email] = {
             "student_questions": student_questions,
-            "responses": response
+            "responses": response,
         }
-    
-    return (json.loads(exam_json), template_questions, email_to_data_map, total)
 
-
-    
+    return json.loads(exam_json), template_questions, email_to_data_map, total
