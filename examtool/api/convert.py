@@ -29,7 +29,7 @@ class LineBuffer:
             self.i += text.i
         else:
             raise SyntaxError(f"LineBuffer: unsupported type to insert: {type(text)}")
-        self.lines = self.lines[:self.i] + new_lines + self.lines[self.i:]
+        self.lines = self.lines[: self.i] + new_lines + self.lines[self.i :]
 
     def pop(self) -> str:
         if self.i == len(self.lines):
@@ -56,8 +56,8 @@ class LineBuffer:
 
 def parse_directive(line):
     if not any(
-            line.startswith(f"# {x} ")
-            for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE", "IMPORT"]
+        line.startswith(f"# {x} ")
+        for x in ["BEGIN", "END", "INPUT", "CONFIG", "DEFINE", "IMPORT"]
     ):
         return None, None, None
     tokens = line.split(" ", 3)
@@ -87,7 +87,7 @@ def rand_id():
     return "".join(random.choices(string.ascii_uppercase, k=32))
 
 
-class ToParse():
+class ToParse:
     def __init__(self, text, type):
         self.text = text
         self.type = type
@@ -97,11 +97,7 @@ class ToParse():
 
 
 def parse(text):
-    return {
-        "text": text,
-        "html": ToParse(text, "html"),
-        "tex": ToParse(text, "tex"),
-    }
+    return {"text": text, "html": ToParse(text, "html"), "tex": ToParse(text, "tex")}
 
 
 def parse_define(directive, rest, substitutions, substitutions_match):
@@ -131,7 +127,7 @@ def parse_input_lines(lines):
     correct_options = []
     if directive == "OPTION" or directive == "SELECT":
         options = []
-        for line in tqdm(lines, unit="line", dynamic_ncols=True, leave=False, desc="Question Options"):
+        for line in lines:
             _, other_directive, rest = parse_directive(line)
             if other_directive != directive:
                 raise SyntaxError("Multiple INPUT types found in a single QUESTION")
@@ -139,13 +135,13 @@ def parse_input_lines(lines):
             is_fixed = False
             if rest.startswith(fixed):
                 is_fixed = True
-                rest = rest[len(fixed):]
+                rest = rest[len(fixed) :]
 
             correct = "CORRECT "
             is_correct = False
             if rest.startswith(correct):
                 is_correct = True
-                rest = rest[len(correct):]
+                rest = rest[len(correct) :]
 
             if is_correct:
                 correct_options.append(rest)
@@ -158,10 +154,10 @@ def parse_input_lines(lines):
             correct_options,
         )
     elif directive in (
-            "SHORT_ANSWER",
-            "SHORT_CODE_ANSWER",
-            "LONG_ANSWER",
-            "LONG_CODE_ANSWER",
+        "SHORT_ANSWER",
+        "SHORT_CODE_ANSWER",
+        "LONG_ANSWER",
+        "LONG_CODE_ANSWER",
     ):
         if len(lines) > 1:
             raise SyntaxError(
@@ -193,9 +189,13 @@ def consume_rest_of_solution(buff, end):
             if directive == end:
                 return parse("\n".join(out))
             else:
-                raise SyntaxError(f"Unexpected END ({directive if directive else line}) in SOLUTION")
+                raise SyntaxError(
+                    f"Unexpected END ({directive if directive else line}) in SOLUTION"
+                )
         else:
-            raise SyntaxError(f"Unexpected directive ({mode if mode else line}) in SOLUTION")
+            raise SyntaxError(
+                f"Unexpected directive ({mode if mode else line}) in SOLUTION"
+            )
 
 
 def consume_rest_of_question(buff):
@@ -222,7 +222,9 @@ def consume_rest_of_question(buff):
             elif directive == "NOTE":
                 solution_note = consume_rest_of_solution(buff, directive)
             else:
-                raise SyntaxError(f"Unexpected BEGIN ({directive if directive else line}) in QUESTION")
+                raise SyntaxError(
+                    f"Unexpected BEGIN ({directive if directive else line}) in QUESTION"
+                )
         elif mode == "END":
             if directive == "QUESTION":
                 question_type, options, option_solutions = parse_input_lines(
@@ -247,13 +249,17 @@ def consume_rest_of_question(buff):
                     "substitutions_match": substitutions_match,
                 }
             else:
-                raise SyntaxError(f"Unexpected END {directive if directive else line} in QUESTION")
+                raise SyntaxError(
+                    f"Unexpected END {directive if directive else line} in QUESTION"
+                )
         elif mode == "DEFINE":
             parse_define(directive, rest, substitutions, substitutions_match)
         elif mode == "CONFIG":
             config[directive] = rest
         else:
-            raise SyntaxError(f"Unexpected directive ({mode if mode else line}) in QUESTION")
+            raise SyntaxError(
+                f"Unexpected directive ({mode if mode else line}) in QUESTION"
+            )
 
 
 def consume_rest_of_group(buff, end):
@@ -314,7 +320,9 @@ def consume_rest_of_group(buff, end):
             elif directive == "SCRAMBLE":
                 scramble = True
             else:
-                raise SyntaxError(f"Unexpected CONFIG directive ({directive if directive else line}) in GROUP")
+                raise SyntaxError(
+                    f"Unexpected CONFIG directive ({directive if directive else line}) in GROUP"
+                )
         else:
             raise SyntaxError(f"Unexpected directive ({line}) in GROUP")
 
@@ -326,12 +334,9 @@ def _convert(text, *, path=None):
     config = {}
     substitutions = {}
     substitutions_match = []
-    pbar = None
     try:
         if path is not None:
             handle_imports(buff, path)
-        pbar = tqdm(total=len(buff.lines), unit="line", dynamic_ncols=True)
-        buff.onpop = lambda b: pbar.update()
         while not buff.empty():
             line = buff.pop()
             if not line.strip():
@@ -366,11 +371,10 @@ def _convert(text, *, path=None):
                 parse_define(directive, rest, substitutions, substitutions_match)
             else:
                 raise SyntaxError(f"Unexpected directive: {line}")
-        pbar.close()
     except SyntaxError as e:
-        if pbar:
-            pbar.close()
-        raise SyntaxError("Parse stopped on line {} with error {}".format(buff.location(), e))
+        raise SyntaxError(
+            "Parse stopped on line {} with error {}".format(buff.location(), e)
+        )
 
     return {
         "public": public,
@@ -386,10 +390,7 @@ def pandoc(target, *, draft=False):
 
     def explore(pos):
         if isinstance(pos, ToParse):
-            if draft:
-                to_parse.append(pos)
-            else:
-                pos.__dict__[pos.type] = html_convert(pos.text) if pos.type == "html" else tex_convert(pos.text)
+            to_parse.append(pos)
         elif isinstance(pos, dict):
             for child in pos.values():
                 explore(child)
@@ -401,16 +402,24 @@ def pandoc(target, *, draft=False):
 
     DELIMITER = """\n\nDELIMITER\n\n"""
 
-    transpile_target = lambda t: DELIMITER.join(x.text for x in to_parse if x.type == t)
+    if draft:
+        transpile_target = lambda t: DELIMITER.join(
+            x.text for x in to_parse if x.type == t
+        )
 
-    html = html_convert(transpile_target("html")).split(html_convert(DELIMITER))
-    tex = tex_convert(transpile_target("tex")).split(tex_convert(DELIMITER))
+        html = html_convert(transpile_target("html")).split(html_convert(DELIMITER))
+        tex = tex_convert(transpile_target("tex")).split(tex_convert(DELIMITER))
 
-    for x, h in zip(filter(lambda x: x.type == "html", to_parse), html):
-        x.html = h
+        for x, h in zip(filter(lambda x: x.type == "html", to_parse), html):
+            x.html = h
 
-    for x, t in zip(filter(lambda x: x.type == "tex", to_parse), tex):
-        x.tex = t
+        for x, t in zip(filter(lambda x: x.type == "tex", to_parse), tex):
+            x.tex = t
+    else:
+        for x in tqdm(to_parse):
+            x.__dict__[x.type] = (
+                html_convert(x.text) if x.type == "html" else tex_convert(x.text)
+            )
 
     def pandoc_dump(obj):
         assert isinstance(obj, ToParse)
