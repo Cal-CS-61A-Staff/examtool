@@ -18,7 +18,7 @@ class LineBuffer:
         self.i = 0
         self.insert_next(text)
         self.onpop = lambda x: None
-    
+
     def insert_next(self, text):
         if isinstance(text, list):
             new_lines = text
@@ -99,8 +99,8 @@ class ToParse():
 def parse(text):
     return {
         "text": text,
-        "html": html_convert(text),  # ToParse(text, "html"),
-        "tex": tex_convert(text)  # ToParse(text, "tex"),
+        "html": ToParse(text, "html"),
+        "tex": ToParse(text, "tex"),
     }
 
 
@@ -319,7 +319,7 @@ def consume_rest_of_group(buff, end):
             raise SyntaxError(f"Unexpected directive ({line}) in GROUP")
 
 
-def _convert(text, path=None):
+def _convert(text, *, path=None):
     buff = LineBuffer(text)
     groups = []
     public = None
@@ -381,12 +381,15 @@ def _convert(text, path=None):
     }
 
 
-def pandoc(target):
+def pandoc(target, *, draft=False):
     to_parse = []
 
     def explore(pos):
         if isinstance(pos, ToParse):
-            to_parse.append(pos)
+            if draft:
+                to_parse.append(pos)
+            else:
+                to_parse.append(html_convert(pos.text) if pos.type == "html" else tex_convert(pos.text))
         elif isinstance(pos, dict):
             for child in pos.values():
                 explore(child)
@@ -403,8 +406,6 @@ def pandoc(target):
     html = html_convert(transpile_target("html")).split(html_convert(DELIMITER))
     tex = tex_convert(transpile_target("tex")).split(tex_convert(DELIMITER))
 
-    assert not html or not tex or (len(to_parse) == len(html) + len(tex), (len(to_parse), len(html), len(tex)))
-
     for x, h in zip(filter(lambda x: x.type == "html", to_parse), html):
         x.html = h
 
@@ -418,18 +419,20 @@ def pandoc(target):
     return json.dumps(target, default=pandoc_dump)
 
 
-def convert(text, path=None):
-    return json.loads(convert_str(text, path=path))
+def convert(text, *, path=None, draft=False):
+    return json.loads(convert_str(text, path=path, draft=draft))
 
 
-def convert_str(text, path=None):
-    return pandoc(_convert(text, path=path))
+def convert_str(text, *, path=None, draft=False):
+    return pandoc(_convert(text, path=path), draft=draft)
+
 
 def import_file(filepath: str) -> str:
     if not filepath:
         raise SyntaxError("IMPORT must take in a filepath")
     with open(filepath, "r") as f:
         return f.read()
+
 
 def handle_imports(buff: LineBuffer, path: str):
     while not buff.empty():

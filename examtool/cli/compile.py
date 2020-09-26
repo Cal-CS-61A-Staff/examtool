@@ -11,7 +11,12 @@ from examtool.api.database import get_exam
 from examtool.api.gen_latex import render_latex
 from examtool.api.utils import sanitize_email
 from examtool.api.scramble import scramble
-from examtool.cli.utils import determine_semester, exam_name_option, hidden_output_folder_option, prettify
+from examtool.cli.utils import (
+    determine_semester,
+    exam_name_option,
+    hidden_output_folder_option,
+    prettify,
+)
 
 
 @click.command()
@@ -34,7 +39,11 @@ from examtool.cli.utils import determine_semester, exam_name_option, hidden_outp
     help="Scrambles the exam based off of the seed (E.g. a student's email).",
 )
 @click.option("--subtitle", prompt=False, default="Sample Exam.")
-@click.option("--with-solutions/--without-solutions", default=True, help="Generates the exam with (default) or without solutions.")
+@click.option(
+    "--with-solutions/--without-solutions",
+    default=True,
+    help="Generates the exam with (default) or without solutions.",
+)
 @click.option(
     "--exam-type",
     default="Final Exam",
@@ -49,16 +58,34 @@ from examtool.cli.utils import determine_semester, exam_name_option, hidden_outp
     "--json-out",
     default=None,
     type=click.File("w"),
-    help="Exports the JSON to the file specified."
+    help="Exports the JSON to the file specified.",
 )
 @click.option(
     "--merged-md",
     default=None,
     type=click.File("w"),
-    help="Merges any imports into a single file."
+    help="Merges any imports into a single file.",
+)
+@click.option(
+    "--draft/--normal",
+    default=False,
+    help="Generates a draft copy of the exam, which is faster but less accurate.",
 )
 @hidden_output_folder_option
-def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester, json_out, merged_md, out):
+def compile(
+    exam,
+    json,
+    md,
+    seed,
+    subtitle,
+    with_solutions,
+    exam_type,
+    semester,
+    json_out,
+    merged_md,
+    draft,
+    out,
+):
     """
     Compile one PDF or JSON (from Markdown), unencrypted.
     The exam may be deployed or local (in Markdown or JSON).
@@ -80,7 +107,7 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
             merged_md.write("\n".join(buff.lines))
             return
         print("Compiling exam...")
-        exam_data = convert(exam_text_data, path=os.path.dirname(md.name))
+        exam_data = convert(exam_text_data, path=os.path.dirname(md.name), draft=draft)
     else:
         print("Fetching exam...")
         exam_data = get_exam(exam=exam)
@@ -88,7 +115,6 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
     if seed:
         print("Scrambling exam...")
         exam_data = scramble(seed, exam_data, keep_data=with_solutions)
-
 
     def remove_solutions_from_groups(groups):
         for group in groups:
@@ -116,10 +142,7 @@ def compile(exam, json, md, seed, subtitle, with_solutions, exam_type, semester,
     }
     if seed:
         settings["emailaddress"] = sanitize_email(seed)
-    with render_latex(
-        exam_data,
-        settings,
-    ) as pdf:
+    with render_latex(exam_data, settings) as pdf:
         pdf = Pdf.open(BytesIO(pdf))
         pdf.save(os.path.join(out, exam + ".pdf"))
         pdf.close()

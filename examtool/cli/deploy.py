@@ -64,6 +64,8 @@ def deploy(exam, json, roster, start_time, default_deadline):
 
     print("Exam uploaded with password:", exam_content["secret"][:-1])
 
+    print("Exam deployed to https://exam.cs61a.org/{}".format(exam))
+
     print("Initializing announcements...")
     elements = list(extract_questions(exam_content, include_groups=True))
     for element in elements:
@@ -91,17 +93,7 @@ def deploy(exam, json, roster, start_time, default_deadline):
         for email, deadline in roster
     ]
 
-    if (
-        input(
-            "Updating announcements roster with {} students. OK? (y/N) ".format(
-                len(students)
-            )
-        )
-        .strip()
-        .lower()
-        != "y"
-    ):
-        raise KeyboardInterrupt
+    print("Updating announcements roster with {} students...".format(len(students)))
 
     process_ok_exam_upload(
         exam=exam,
@@ -110,8 +102,10 @@ def deploy(exam, json, roster, start_time, default_deadline):
             "questions": [
                 {"canonical_question_name": name} for name in elements.values()
             ],
-        }
+        },
     )
+
+    print("Announcements deployed to https://announcements.cs61a.org")
 
 
 def get_name(element):
