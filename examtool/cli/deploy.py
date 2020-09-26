@@ -2,12 +2,10 @@ import csv
 from json import dumps, loads
 
 import click
-import requests
 from cryptography.fernet import Fernet
 
-from examtool.api.auth import get_token
 from examtool.api.convert import rand_id
-from examtool.api.database import set_exam, get_exam, set_roster
+from examtool.api.database import process_ok_exam_upload, set_exam, get_exam, set_roster
 from examtool.api.extract_questions import extract_questions
 from examtool.api.scramble import scramble
 from examtool.cli.utils import exam_name_option
@@ -93,22 +91,27 @@ def deploy(exam, json, roster, start_time, default_deadline):
         for email, deadline in roster
     ]
 
-    if input("Updating announcements roster with {} students. OK? (y/N) ".format(len(students))).strip().lower() != "y":
+    if (
+        input(
+            "Updating announcements roster with {} students. OK? (y/N) ".format(
+                len(students)
+            )
+        )
+        .strip()
+        .lower()
+        != "y"
+    ):
         raise KeyboardInterrupt
 
-    requests.post(
-        "https://announcements.cs61a.org/upload_ok_exam",
-        json={
-            "data": {
-                "exam_name": exam,
-                "students": students,
-                "questions": [
-                    {"canonical_question_name": name} for name in elements.values()
-                ],
-            },
-            "secret": get_token(),
-        },
-    ).raise_for_status()
+    process_ok_exam_upload(
+        data={
+            "exam_name": exam,
+            "students": students,
+            "questions": [
+                {"canonical_question_name": name} for name in elements.values()
+            ],
+        }
+    )
 
 
 def get_name(element):
