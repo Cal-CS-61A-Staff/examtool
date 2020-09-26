@@ -389,7 +389,7 @@ def pandoc(target, *, draft=False):
             if draft:
                 to_parse.append(pos)
             else:
-                to_parse.append(html_convert(pos.text) if pos.type == "html" else tex_convert(pos.text))
+                pos.__dict__[pos.type] = html_convert(pos.text) if pos.type == "html" else tex_convert(pos.text)
         elif isinstance(pos, dict):
             for child in pos.values():
                 explore(child)
