@@ -105,10 +105,9 @@ def get_logs(*, exam, email):
 
 
 @server_only
-def process_ok_exam_upload(*, data):
+def process_ok_exam_upload(*, exam, data):
     """
     data: {
-        "exam_name": string,
         "students": [
             {
                 "email": string,
@@ -133,11 +132,11 @@ def process_ok_exam_upload(*, data):
     """
     db = firestore.Client()
 
-    db.collection("exam-alerts").document(data["exam_name"]).set(
+    db.collection("exam-alerts").document(exam).set(
         {"questions": data["questions"]}
     )
     ref = (
-        db.collection("exam-alerts").document(data["exam_name"]).collection("students")
+        db.collection("exam-alerts").document(exam).collection("students")
     )
     clear_collection(db, ref)
 
@@ -155,6 +154,6 @@ def process_ok_exam_upload(*, data):
 
     ref = db.collection("exam-alerts").document("all")
     exam_list_data = ref.get().to_dict()
-    if data["exam_name"] not in exam_list_data["exam-list"]:
-        exam_list_data["exam-list"].append(data["exam_name"])
+    if exam not in exam_list_data["exam-list"]:
+        exam_list_data["exam-list"].append(exam)
     ref.set(exam_list_data)

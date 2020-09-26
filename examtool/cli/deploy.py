@@ -104,8 +104,8 @@ def deploy(exam, json, roster, start_time, default_deadline):
         raise KeyboardInterrupt
 
     process_ok_exam_upload(
+        exam=exam,
         data={
-            "exam_name": exam,
             "students": students,
             "questions": [
                 {"canonical_question_name": name} for name in elements.values()
