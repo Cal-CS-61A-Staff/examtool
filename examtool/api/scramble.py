@@ -85,6 +85,7 @@ def scramble(email, exam, *, keep_data=False):
                 for k, v in substitutions.items():
                     target[attr] = target[attr].replace(k, v)
                     target[attr] = target[attr].replace(k.title(), v.title())
+                    target[attr] = target[attr].replace(latex_escape(k), latex_escape(v))
         if store:
             if keep_data:
                 target["substitutions"] = merged
@@ -147,3 +148,7 @@ def select_no_replace(substitutions_match):
 
 def is_compressible_group(group):
     return group.get("pick_some") == 1 and not group["name"].strip() and group["points"] is None
+
+
+def latex_escape(text):
+    return text.replace("_", r"\_")
