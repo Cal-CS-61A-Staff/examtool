@@ -46,13 +46,27 @@ def generate(exam):
         solution = question.get("solution", defaultdict())
         if solution.get("solution"):
             write(r"\setlength{\fboxsep}{1em}")
-            write(r"\fbox{\parbox{0.8\textwidth}{\solution{")
-            write(solution["solution"]["tex"])
-            write(r"}}}")
+            if "verbatim" in solution["solution"]["tex"]:
+                write(
+                    r"\catcode`_ 12\relax\n\begin{Verbatim}[frame=single,formatcom=\color{blue},rulecolor=\color{black},xleftmargin=1em,xrightmargin=1em]\n"
+                )
+                write(
+                    solution["solution"]["tex"]
+                    .replace("\\begin{verbatim}", "")
+                    .replace("\\end{verbatim}", "")
+                    .strip()
+                )
+                write(r"\end{Verbatim}\n\catcode`_ 8\relax")
+            else:
+                write(r"\fbox{\parbox{0.8\textwidth}{\solution{")
+                write(solution["solution"]["tex"])
+                write(r"}}}")
         elif question["type"] in ["short_answer", "short_code_answer"]:
             write(r"\framebox[0.8\textwidth][c]{\parbox[c][30px]{0.5\textwidth}{}}")
         elif question["type"] in ["long_answer", "long_code_answer"]:
-            write(rf"\framebox[0.8\textwidth][c]{{\parbox[c][{30 * (question['options'])}px]{{0.5\textwidth}}{{}}}}")
+            write(
+                rf"\framebox[0.8\textwidth][c]{{\parbox[c][{30 * (question['options'])}px]{{0.5\textwidth}}{{}}}}"
+            )
 
         correct = solution.get("options", [])
 
@@ -80,7 +94,9 @@ def generate(exam):
 
     with rel_open("tex/prefix.tex") as f:
         write(f.read())
-    for i, group in enumerate(([exam["public"]] if exam["public"] else []) + exam["groups"]):
+    for i, group in enumerate(
+        ([exam["public"]] if exam["public"] else []) + exam["groups"]
+    ):
         is_public = bool(i == 0 and exam["public"])
         write_group(group, is_public)
 
@@ -93,7 +109,11 @@ def generate(exam):
 @contextmanager
 def render_latex(exam, subs=None, *, do_twice=False):
     latex = generate(exam)
-    latex = re.sub(r"\\includegraphics(\[.*\])?{(http.*/(.+))}", r"\\immediate\\write18{wget -N \2}\n\\includegraphics\1{\3}", latex)
+    latex = re.sub(
+        r"\\includegraphics(\[.*\])?{(http.*/(.+))}",
+        r"\\immediate\\write18{wget -N \2}\n\\includegraphics\1{\3}",
+        latex,
+    )
     if subs:
         for k, v in subs.items():
             latex = latex.replace(f"<{k.upper()}>", v)
