@@ -95,15 +95,18 @@ def deploy(exam, json, roster, start_time, default_deadline):
 
     print("Updating announcements roster with {} students...".format(len(students)))
 
-    process_ok_exam_upload(
-        exam=exam,
-        data={
-            "students": students,
-            "questions": [
-                {"canonical_question_name": name} for name in elements.values()
-            ],
-        },
-    )
+    for i in range(0, len(students), 100):
+        print("Uploading from student #{} to #{}".format(i, min(i + 100, len(students))))
+        process_ok_exam_upload(
+            exam=exam,
+            data={
+                "students": students[i:i+100],
+                "questions": [
+                    {"canonical_question_name": name} for name in elements.values()
+                ],
+            },
+            clear=i == 0,
+        )
 
     print("Announcements deployed to https://announcements.cs61a.org")
 
