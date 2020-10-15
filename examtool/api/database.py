@@ -105,7 +105,7 @@ def get_logs(*, exam, email):
 
 
 @server_only
-def process_ok_exam_upload(*, exam, data):
+def process_ok_exam_upload(*, exam, data, clear=True):
     """
     data: {
         "students": [
@@ -138,7 +138,8 @@ def process_ok_exam_upload(*, exam, data):
     ref = (
         db.collection("exam-alerts").document(exam).collection("students")
     )
-    clear_collection(db, ref)
+    if clear:
+        clear_collection(db, ref)
 
     batch = db.batch()
     cnt = 0
