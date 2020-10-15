@@ -25,7 +25,7 @@ def server_only(func):
 def call_server(method, kwargs):
     token = get_token()
     resp = requests.post(
-        "https://exam.cs61a.org/admin/api/{method}".format(method=method),
+        "https://us-central1-cs61a-140900.cloudfunctions.net/exam-admin/api/{method}".format(method=method),
         json={**kwargs, "token": token},
     )
     if resp.status_code == 200:
