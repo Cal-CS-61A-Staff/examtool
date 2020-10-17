@@ -21,6 +21,7 @@ def write_exam(
     sid_question,
     dispatch,
     out=None,
+    substitute_in_question_text=False,
 ):
     pdf = FPDF()
     pdf.add_page()
@@ -43,7 +44,11 @@ def write_exam(
     for question in template_questions:
         pdf.add_page()
         out("\nQUESTION")
-        for line in question["text"].split("\n"):
+        if substitute_in_question_text:
+            question_for_text = student_question_lookup.get(question["id"], question)
+        else:
+            question_for_text = question
+        for line in question_for_text["text"].split("\n"):
             out(line)
 
         out("\nANSWER")
@@ -114,6 +119,7 @@ def export(
     sid_question,
     dispatch=None,
     include_outline=True,
+    substitute_in_question_text=False,
 ):
     out = out or "out/export/" + exam
     pathlib.Path(out).mkdir(parents=True, exist_ok=True)
@@ -141,6 +147,7 @@ def export(
             name_question,
             sid_question,
             dispatch,
+            substitute_in_question_text=substitute_in_question_text,
         )
         pdf.output(os.path.join(out, "{}.pdf".format(email)))
 

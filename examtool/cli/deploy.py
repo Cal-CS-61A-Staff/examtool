@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 from examtool.api.convert import rand_id
 from examtool.api.database import process_ok_exam_upload, set_exam, get_exam, set_roster
 from examtool.api.extract_questions import extract_questions
-from examtool.api.scramble import scramble
+from examtool.api.scramble import is_compressible_group, scramble
 from examtool.cli.utils import exam_name_option
 
 
@@ -70,7 +70,11 @@ def deploy(exam, json, roster, start_time, default_deadline):
     elements = list(extract_questions(exam_content, include_groups=True))
     for element in elements:
         element["id"] = element.get("id", rand_id())  # add IDs to groups
-    elements = {element["id"]: get_name(element) for element in elements}
+    elements = {
+        element["id"]: get_name(element)
+        for element in elements
+        if element["type"] != "group" or not is_compressible_group(element)
+    }
     json = dumps(exam_content)  # re-serialize with group IDs
 
     students = [
@@ -96,11 +100,13 @@ def deploy(exam, json, roster, start_time, default_deadline):
     print("Updating announcements roster with {} students...".format(len(students)))
 
     for i in range(0, len(students), 100):
-        print("Uploading from student #{} to #{}".format(i, min(i + 100, len(students))))
+        print(
+            "Uploading from student #{} to #{}".format(i, min(i + 100, len(students)))
+        )
         process_ok_exam_upload(
             exam=exam,
             data={
-                "students": students[i:i+100],
+                "students": students[i : i + 100],
                 "questions": [
                     {"canonical_question_name": name} for name in elements.values()
                 ],
