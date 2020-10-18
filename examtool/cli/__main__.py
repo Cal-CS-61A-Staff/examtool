@@ -12,6 +12,7 @@ from examtool.cli.logs import logs
 from examtool.cli.save_logs import save_logs
 from examtool.cli.send import send
 from examtool.cli.compile import compile
+from examtool.cli.substitutions import substitutions
 
 
 @click.group()
@@ -37,6 +38,7 @@ cli.add_command(login)
 cli.add_command(compile)
 cli.add_command(cheaters)
 cli.add_command(save_logs)
+cli.add_command(substitutions)
 
 if __name__ == '__main__':
     cli()

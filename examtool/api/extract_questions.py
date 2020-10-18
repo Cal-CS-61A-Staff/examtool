@@ -14,7 +14,7 @@ def extract_questions(exam, extract_public_bool: bool = True, top_level: bool = 
 
     def _group_questions(group):
         for i, element in enumerate(group.get("elements", []) + group.get("questions", [])):
-            element["index"] = f"{group.get('index', 0)}{i + 1}."
+            element["index"] = f"{group.get('index', '0.')}{i + 1}."
             if element.get("type") == "group":
                 if include_groups:
                     yield element
