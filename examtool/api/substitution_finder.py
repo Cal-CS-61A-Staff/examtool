@@ -3,41 +3,47 @@ import json
 from examtool.api.database import get_exam
 from examtool.api.extract_questions import extract_questions
 from examtool.api.scramble import scramble, get_elements
+from examtool.api.substitutions import get_question_substitutions
 
 
 def find_unexpected_words(exam, logs):
     data = get_exam(exam=exam)
     exam_json = json.dumps(data)
+    original_questions = {q["id"]: q for q in extract_questions(json.loads(exam_json))}
     for i, (email, log) in enumerate(logs):
         all_alternatives = get_substitutions(data)
-        selected = {
-            question["id"]: question["substitutions"]
-            for question in extract_questions(scramble(email, json.loads(exam_json), keep_data=True))
-        }
+        scrambled_questions = {q["id"]: q for q in extract_questions(scramble(email, json.loads(exam_json), keep_data=True))}
+        flagged_questions = set()
         for record in log:
             record.pop("timestamp")
             question = next(iter(record.keys()))
             answer = next(iter(record.values()))
-            if question not in all_alternatives:
+
+            if question not in all_alternatives or question in flagged_questions:
                 continue
-            for keyword, variants in all_alternatives[question].items():
-                for variant in variants:
-                    if variant == selected[question][keyword]:
+
+            student_substitutions = get_question_substitutions(original_questions, scrambled_questions, question)
+
+            for keyword in student_substitutions:
+                for variant in all_alternatives[question][keyword]:
+                    if variant == student_substitutions[keyword]:
                         continue
                     if variant in answer:
-                        # check for false positive
-                        for other in selected[question].values():
-                            if variant in other and other != variant:
-                                break
-                        else:
-                            print(email, selected[question], variant, answer)
-                            break
-                else:
-                    continue
-                break
-            else:
-                continue
-            break
+                        # check for false positives
+                        if variant in original_questions[question]["text"]:
+                            continue
+                        if variant in scrambled_questions[question]["text"]:
+                            continue
+
+                        flagged_questions.add(question)
+
+                        print(
+                                "Student {} used keyword {} for {}, when they should have used {}".format(
+                                    email, variant, keyword, student_substitutions[keyword]
+                                )
+                            )
+
+                        print("\tThey wrote {}. Their substitutions were: {}".format(" ".join(answer.split()), student_substitutions))
 
 
 def get_substitutions(exam):
