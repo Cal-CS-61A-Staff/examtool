@@ -4,6 +4,8 @@ import random
 def scramble(email, exam, *, keep_data=False):
     random.seed(email)
 
+    version = exam.get("version", 1)
+
     def scramble_group(group, substitutions, config, depth):
         group_substitutions = select(group["substitutions"])
         group_substitutions.update(
@@ -14,32 +16,54 @@ def scramble(email, exam, *, keep_data=False):
             [*substitutions, group_substitutions],
             ["name", "html", "tex", "text"],
         )
-        if depth in config["scramble_groups"] or group.get("scramble"):
-            scramble_keep_fixed(get_elements(group))
-        if group.get("pick_some"):
-            get_elements(group)[:] = random.sample(
-                get_elements(group), group["pick_some"]
-            )
+
+        def scramble_group_children():
+            if depth in config["scramble_groups"] or group.get("scramble"):
+                scramble_keep_fixed(get_elements(group))
+            if group.get("pick_some"):
+                get_elements(group)[:] = random.sample(
+                    get_elements(group), group["pick_some"]
+                )
+
+        if version == 1:
+            scramble_group_children()
+
+        elements = []
         for element in get_elements(group):
             if element.get("type") == "group":
-                scramble_group(
-                    element, [*substitutions, group_substitutions], config, depth + 1
+                elements.extend(
+                    scramble_group(
+                        element,
+                        [*substitutions, group_substitutions],
+                        config,
+                        depth + 1,
+                    )
                 )
             else:
-                scramble_question(
-                    element, [*substitutions, group_substitutions], config
+                elements.append(
+                    scramble_question(
+                        element, [*substitutions, group_substitutions], config
+                    )
                 )
+        get_elements(group)[:] = elements
+
+        if version > 1:
+            scramble_group_children()
 
         if is_compressible_group(group):
             text, html, tex = group["text"], group["html"], group["tex"]
-            element = get_elements(group)[0]
-            if element.get("type") != "group" and depth == 1:
-                return
-            group.clear()
-            group.update(element)
-            group["text"] = text + "\n" + group["text"]
-            group["html"] = html + "\n" + group["html"]
-            group["tex"] = tex + "\n" + group["tex"]
+            elements = get_elements(group)
+            out = []
+            for element in elements:
+                if element.get("type") != "group" and depth == 1:
+                    return [group]
+                element["text"] = text + "\n" + element["text"]
+                element["html"] = html + "\n" + element["html"]
+                element["tex"] = tex + "\n" + element["tex"]
+                out.append(element)
+            return out
+
+        return [group]
 
     def scramble_question(question, substitutions, config):
         question_substitutions = select(question["substitutions"])
@@ -80,6 +104,8 @@ def scramble(email, exam, *, keep_data=False):
         else:
             question.pop("solution", None)
 
+        return question
+
     def substitute(target: dict, list_substitutions, attrs, *, store=True):
         merged = {}
         for substitutions in list_substitutions:
@@ -118,8 +144,11 @@ def scramble(email, exam, *, keep_data=False):
     ) or range(100)
     if 0 in exam["config"]["scramble_groups"]:
         scramble_keep_fixed(exam["groups"])
+    groups = []
     for group in exam["groups"]:
-        scramble_group(group, [global_substitutions], exam["config"], 1)
+        groups.extend(scramble_group(group, [global_substitutions], exam["config"], 1))
+
+    exam["groups"] = groups
     exam.pop("config", None)
 
     return exam
@@ -156,7 +185,7 @@ def is_compressible_group(group):
         group.get("pick_some") == 1
         and not group["name"].strip()
         and group["points"] is None
-    )
+    ) or group.get("inline")
 
 
 def latex_escape(text):

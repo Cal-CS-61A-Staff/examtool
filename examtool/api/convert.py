@@ -8,6 +8,8 @@ import pypandoc
 
 from tqdm import tqdm
 
+VERSION = 2  # increment when backward-incompatible changes are made
+
 html_convert = lambda x: pypandoc.convert_text(x, "html5", "md", ["--mathjax"])
 tex_convert = lambda x: pypandoc.convert_text(x, "latex", "md")
 
@@ -76,11 +78,11 @@ def process_title(line):
         tokens = tokens[1:]
         line = " ".join(tokens)
     if not point_sec or point_sec[0] != "[" or point_sec[-1] != "]":
-        return line, has_fixed, None
+        return line.strip(), has_fixed, None
     try:
-        return " ".join(tokens[:-1]), has_fixed, float(point_sec[1:-1])
+        return " ".join(tokens[:-1]).strip(), has_fixed, float(point_sec[1:-1])
     except ValueError:
-        return line, has_fixed, None
+        return line.strip(), has_fixed, None
 
 
 def rand_id():
@@ -270,6 +272,7 @@ def consume_rest_of_group(buff, end):
     substitutions_match = []
     pick_some = None
     scramble = False
+    inline = False
     while True:
         line = buff.pop()
         mode, directive, rest = parse_directive(line)
@@ -293,6 +296,8 @@ def consume_rest_of_group(buff, end):
             started_elements = True
             title, is_fixed, points = process_title(rest)
             group = consume_rest_of_group(buff, "GROUP")
+            if (title or points) and group["inline"]:
+                raise SyntaxError("Cannot create an inline group with title or points")
             group["name"] = title
             group["points"] = points
             group["fixed"] = is_fixed
@@ -306,6 +311,7 @@ def consume_rest_of_group(buff, end):
                 "substitutions_match": substitutions_match,
                 "pick_some": pick_some,
                 "scramble": scramble,
+                "inline": inline,
             }
         elif mode == "DEFINE":
             parse_define(directive, rest, substitutions, substitutions_match)
@@ -319,6 +325,8 @@ def consume_rest_of_group(buff, end):
                     raise SyntaxError("Invalid argument passed to CONFIG PICK")
             elif directive == "SCRAMBLE":
                 scramble = True
+            elif directive == "INLINE":
+                inline = True
             else:
                 raise SyntaxError(
                     f"Unexpected CONFIG directive ({directive if directive else line}) in GROUP"
@@ -359,6 +367,10 @@ def _convert(text, *, path=None):
                 group["name"] = title
                 group["points"] = points
                 group["fixed"] = is_fixed
+                if (title.strip() or points) and group["inline"]:
+                    raise SyntaxError(
+                        "Cannot create an inline group with a title or points"
+                    )
                 if directive == "PUBLIC":
                     if public:
                         raise SyntaxError("Only one PUBLIC block is allowed")
@@ -382,6 +394,7 @@ def _convert(text, *, path=None):
         "config": config,
         "substitutions": substitutions,
         "substitutions_match": substitutions_match,
+        "version": VERSION,
     }
 
 
